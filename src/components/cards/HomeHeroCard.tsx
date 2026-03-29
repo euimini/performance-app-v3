@@ -1,39 +1,65 @@
 import type { PlannerOutput } from "../../domain/session/types";
 
 type HomeHeroCardProps = {
-  hero: PlannerOutput["hero"];
+  plannerOutput: PlannerOutput;
   onStart: () => void;
 };
 
-export const HomeHeroCard = ({ hero, onStart }: HomeHeroCardProps) => (
+const priorityLabel = (priority: PlannerOutput["cardPriority"]) =>
+  priority === "firefighter" ? "소방 시험 우선" : priority === "pull-up" ? "풀업 성장 우선" : "회복 재정비";
+
+const versionLabel = (version: PlannerOutput["todayPlan"]["version"]) =>
+  version === "normal" ? "기본 처방" : version === "reduced" ? "축소 처방" : "회복 처방";
+
+export const HomeHeroCard = ({ plannerOutput, onStart }: HomeHeroCardProps) => (
   <section className="hero-card hero-card-strong">
-    <div className="eyebrow">오늘 세션</div>
-    <h1>{hero.세션명}</h1>
-    <p className="hero-purpose">{hero.목적}</p>
-    <p className="hero-summary">{hero.요약문구}</p>
+    <div className="hero-topline">
+      <span className="eyebrow">오늘 처방</span>
+      <div className="hero-chip-row">
+        <span className="hero-chip">{plannerOutput.phase}</span>
+        <span className="hero-chip subtle">{priorityLabel(plannerOutput.cardPriority)}</span>
+      </div>
+    </div>
+
+    <h1>{plannerOutput.todayPlan.title}</h1>
+    <p className="hero-purpose">{plannerOutput.todayPlan.summary}</p>
+    <p className="hero-summary">{plannerOutput.todayPlan.description}</p>
 
     <div className="hero-meta">
       <div className="hero-meta-item">
-        <span className="hero-meta-label">운동 수</span>
-        <strong>{hero.운동목록.length}개</strong>
+        <span className="hero-meta-label">버전</span>
+        <strong>{versionLabel(plannerOutput.todayPlan.version)}</strong>
       </div>
       <div className="hero-meta-item">
-        <span className="hero-meta-label">바로 시작</span>
-        <strong>{hero.운동목록[0]}</strong>
+        <span className="hero-meta-label">예상 소요시간</span>
+        <strong>{plannerOutput.todayPlan.estimatedMinutes}분</strong>
+      </div>
+      <div className="hero-meta-item">
+        <span className="hero-meta-label">훈련 밀도</span>
+        <strong>{plannerOutput.todayPlan.densityLabel}</strong>
+      </div>
+      <div className="hero-meta-item">
+        <span className="hero-meta-label">첫 핵심 동작</span>
+        <strong>{plannerOutput.todayPlan.exercises[0]?.name ?? "회복 걷기"}</strong>
       </div>
     </div>
 
     <div className="hero-exercise-box">
-      <div className="hero-exercise-title">운동 요약</div>
+      <div className="hero-exercise-title">오늘 바로 할 블록 요약</div>
       <ul className="hero-list">
-        {hero.운동목록.map((exercise) => (
-          <li key={exercise}>{exercise}</li>
+        {plannerOutput.todayPlan.blocks.slice(0, 5).map((block) => (
+          <li key={block.id}>
+            <strong>{block.title}</strong>
+            <span>
+              {block.estimatedMinutes}분 · {block.exercises[0]?.name}
+            </span>
+          </li>
         ))}
       </ul>
     </div>
 
     <button className="primary-button primary-button-wide" onClick={onStart} type="button">
-      {hero.시작버튼문구}
+      오늘 처방 열기
     </button>
   </section>
 );

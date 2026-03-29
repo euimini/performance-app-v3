@@ -6,9 +6,9 @@ type ScreenTabsProps = {
 };
 
 const tabs: Array<{ key: ScreenKey; label: string }> = [
-  { key: "home", label: "홈" },
-  { key: "today", label: "오늘 루틴" },
-  { key: "recovery", label: "회복·영양" },
+  { key: "home", label: "처방 홈" },
+  { key: "today", label: "오늘 세션" },
+  { key: "recovery", label: "회복 입력" },
   { key: "records", label: "기록" }
 ];
 

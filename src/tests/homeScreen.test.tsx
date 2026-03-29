@@ -1,26 +1,67 @@
 import { render, screen } from "@testing-library/react";
-import { createPlannerOutput } from "../engines/sessionPlannerEngine";
+import { createPlannerOutput, createWeeklyPlannerOutput } from "../engines/sessionPlannerEngine";
 import { defaultOnboardingProfile } from "../repositories/onboardingProfileRepository";
 import { HomeScreen } from "../screens/home/HomeScreen";
 
+const recoveryState = {
+  date: "2026-03-29",
+  fatigue: 4,
+  upperDoms: 3,
+  lowerDoms: 3,
+  shoulderStress: 3,
+  sleepHours: 7
+};
+
 describe("HomeScreen", () => {
-  it("HomeScreen이 오늘 세션 Hero를 최상단 핵심 요소로 렌더링한다", () => {
-    const output = createPlannerOutput({
+  it("shows the weekly routine section under today's prescription", () => {
+    const plannerOutput = createPlannerOutput({
       date: "2026-03-29",
       profile: defaultOnboardingProfile,
-      recoveryState: { date: "2026-03-29", 피로도: 4, 근육통: 3, 수면시간: 7 },
+      recoveryState,
       sessionLogs: []
     });
 
-    render(
-      <HomeScreen
-        plannerOutput={output}
-        onStart={() => undefined}
-      />
+    const weeklyPlan = createWeeklyPlannerOutput(
+      {
+        date: "2026-03-29",
+        profile: defaultOnboardingProfile,
+        recoveryState,
+        sessionLogs: []
+      },
+      "2026-03-29",
+      () => recoveryState
     );
 
-    expect(screen.getByText("오늘 세션")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 1, name: output.hero.세션명 })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "오늘 루틴 시작" })).toBeInTheDocument();
+    render(<HomeScreen plannerOutput={plannerOutput} weeklyPlan={weeklyPlan} onStart={() => undefined} />);
+
+    expect(screen.getByText("오늘 처방")).toBeInTheDocument();
+    expect(screen.getByText("이번 주 7일 루틴")).toBeInTheDocument();
+    expect(screen.getAllByText(/분/).length).toBeGreaterThan(1);
+  });
+
+  it("renders firefighter mapping and weekly cards together", () => {
+    const plannerOutput = createPlannerOutput({
+      date: "2026-03-29",
+      profile: defaultOnboardingProfile,
+      recoveryState,
+      sessionLogs: []
+    });
+
+    const weeklyPlan = createWeeklyPlannerOutput(
+      {
+        date: "2026-03-29",
+        profile: defaultOnboardingProfile,
+        recoveryState,
+        sessionLogs: []
+      },
+      "2026-03-29",
+      () => recoveryState
+    );
+
+    render(<HomeScreen plannerOutput={plannerOutput} weeklyPlan={weeklyPlan} onStart={() => undefined} />);
+
+    expect(screen.getByText("시험 매핑")).toBeInTheDocument();
+    expect(screen.getByText("계단 오르내리기")).toBeInTheDocument();
+    expect(screen.getAllByRole("heading", { level: 3 }).length).toBeGreaterThan(2);
   });
 });

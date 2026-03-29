@@ -1,5 +1,4 @@
 import { useState } from "react";
-import type { SessionLog } from "../../domain/records/SessionLog";
 
 type CalendarDay = {
   date: string;
@@ -9,14 +8,12 @@ type CalendarDay = {
 };
 
 type RecordsScreenProps = {
-  sessionLogs: SessionLog[];
   calendarDays: CalendarDay[];
   onToggleComplete: (date: string) => void;
   onResetToday: () => void;
 };
 
 export const RecordsScreen = ({
-  sessionLogs,
   calendarDays,
   onToggleComplete,
   onResetToday
@@ -34,9 +31,9 @@ export const RecordsScreen = ({
   };
 
   return (
-    <section className="quick-log-card">
+    <section className="panel-card">
       <div className="eyebrow">기록</div>
-      <h2>달력에서 운동 완료를 바로 체크합니다.</h2>
+      <h2>처방 완료 여부만 간단히 확인합니다.</h2>
 
       <div className="record-actions">
         <button
@@ -47,7 +44,7 @@ export const RecordsScreen = ({
           {confirmReset ? "한 번 더 누르면 오늘 기록 초기화" : "오늘 기록 초기화"}
         </button>
         {confirmReset ? (
-          <p className="record-help">오늘 회복 기록, 완료 체크, 진행 중 세션을 함께 지웁니다.</p>
+          <p className="record-help">오늘 회복 입력, 완료 체크, 진행 중 세션 상태를 함께 지웁니다.</p>
         ) : null}
       </div>
 
@@ -70,14 +67,6 @@ export const RecordsScreen = ({
           </button>
         ))}
       </div>
-
-      <ul className="record-list">
-        {sessionLogs.map((log) => (
-          <li key={`${log.date}-${log.sessionTemplateId}`}>
-            {log.date} · {log.sessionTemplateId} · {log.completed ? "완료" : "미완료"} · {log.intensity}
-          </li>
-        ))}
-      </ul>
     </section>
   );
 };

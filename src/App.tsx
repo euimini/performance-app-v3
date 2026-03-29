@@ -1,17 +1,22 @@
 import { useMemo, useState } from "react";
-import type { SessionDraft } from "./domain/session/types";
+import type { MissedSessionReason } from "./domain/records/SessionLog";
+import type { RecoveryState } from "./domain/recovery/RecoveryState";
+import type { SessionDraft, SessionVersion } from "./domain/session/types";
 import { ScreenTabs } from "./components/common/ScreenTabs";
-import { createPlannerOutput } from "./engines/sessionPlannerEngine";
+import { createPlannerOutput, createWeeklyPlannerOutput } from "./engines/sessionPlannerEngine";
 import { loadOnboardingProfile } from "./repositories/onboardingProfileRepository";
 import {
-  appendRecoveryLog,
-  defaultRawLogs,
   loadRawLogs,
-  saveRawLogs,
+  removeRecoveryLogByDate,
+  removeSessionLogsByDate,
+  upsertRecoveryLog,
   upsertSessionLog
 } from "./repositories/rawLogsRepository";
-import { loadSessionDraft, saveSessionDraft } from "./repositories/sessionDraftRepository";
-import { removeStorage } from "./store/localStore";
+import {
+  clearSessionDraft,
+  loadSessionDraft,
+  saveSessionDraft
+} from "./repositories/sessionDraftRepository";
 import { HomeScreen } from "./screens/home/HomeScreen";
 import { RecordsScreen } from "./screens/records/RecordsScreen";
 import { RecoveryNutritionScreen } from "./screens/recovery-nutrition/RecoveryNutritionScreen";
@@ -20,16 +25,21 @@ import { TodaySessionScreen } from "./screens/today-session/TodaySessionScreen";
 const today = "2026-03-29";
 
 type ScreenKey = "home" | "today" | "recovery" | "records";
-type ScenarioKey = "기본" | "근육통 높음" | "회복 우선" | "미완료 2회";
 
-const addDays = (date: string, amount: number) => {
-  const next = new Date(`${date}T00:00:00`);
-  next.setDate(next.getDate() + amount);
-  return next.toISOString().slice(0, 10);
+const parseLocalDate = (date: string) => {
+  const [year, month, day] = date.split("-").map(Number);
+  return new Date(year, month - 1, day);
+};
+
+const formatLocalDate = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 };
 
 const buildCalendarDays = (baseDate: string, completedDates: Set<string>) => {
-  const firstDay = new Date(`${baseDate}T00:00:00`);
+  const firstDay = parseLocalDate(baseDate);
   firstDay.setDate(1);
   const month = firstDay.getMonth();
   const startOffset = firstDay.getDay();
@@ -39,7 +49,7 @@ const buildCalendarDays = (baseDate: string, completedDates: Set<string>) => {
   return Array.from({ length: 35 }, (_, index) => {
     const day = new Date(start);
     day.setDate(start.getDate() + index);
-    const date = day.toISOString().slice(0, 10);
+    const date = formatLocalDate(day);
 
     return {
       date,
@@ -50,10 +60,17 @@ const buildCalendarDays = (baseDate: string, completedDates: Set<string>) => {
   });
 };
 
+const getRecoveryForDate = (logs: RecoveryState[], date: string) =>
+  [...logs]
+    .filter((entry) => entry.date <= date)
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .at(-1);
+
 const App = () => {
   const [screen, setScreen] = useState<ScreenKey>("home");
   const [rawLogs, setRawLogs] = useState(() => loadRawLogs());
   const [draft, setDraft] = useState<SessionDraft | undefined>(() => loadSessionDraft());
+  const [todaySessionResetKey, setTodaySessionResetKey] = useState(0);
   const profile = useMemo(() => loadOnboardingProfile(), []);
 
   const plannerOutput = useMemo(
@@ -61,34 +78,25 @@ const App = () => {
       createPlannerOutput({
         date: today,
         profile,
-        recoveryState: rawLogs.recoveryLogs.at(-1),
+        recoveryState: getRecoveryForDate(rawLogs.recoveryLogs, today),
         sessionLogs: rawLogs.sessionLogs,
         sessionDraft: draft
       }),
     [draft, profile, rawLogs]
   );
 
-  const trainingWindow = useMemo(
+  const weeklyPlan = useMemo(
     () =>
-      [
-        { label: "어제", date: addDays(today, -1) },
-        { label: "오늘", date: today },
-        { label: "내일", date: addDays(today, 1) }
-      ].map((item) => {
-        const plan = createPlannerOutput({
-          date: item.date,
+      createWeeklyPlannerOutput(
+        {
+          date: today,
           profile,
-          recoveryState: rawLogs.recoveryLogs.at(-1),
+          recoveryState: getRecoveryForDate(rawLogs.recoveryLogs, today),
           sessionLogs: rawLogs.sessionLogs
-        });
-
-        return {
-          ...item,
-          sessionName: plan.hero.세션명,
-          summary: plan.hero.요약문구,
-          exercises: plan.hero.운동목록.slice(0, 4)
-        };
-      }),
+        },
+        today,
+        (date) => getRecoveryForDate(rawLogs.recoveryLogs, date)
+      ),
     [profile, rawLogs]
   );
 
@@ -99,18 +107,12 @@ const App = () => {
 
   const calendarDays = useMemo(() => buildCalendarDays(today, completedDates), [completedDates]);
 
-  const updateDraft = (intensity: "정상" | "가볍게" | "회복") => {
-    const selectedPlanId =
-      intensity === "회복"
-        ? plannerOutput.recovery.id
-        : intensity === "가볍게"
-          ? plannerOutput.reduced.id
-          : plannerOutput.today.id;
-
+  const updateDraft = (version: SessionVersion) => {
+    const selectedSession = plannerOutput.availablePlans[version];
     const nextDraft: SessionDraft = {
       date: today,
-      selectedPlanId,
-      selectedIntensity: intensity,
+      selectedSessionId: selectedSession.id,
+      selectedVersion: version,
       startedAt: new Date().toISOString()
     };
 
@@ -118,76 +120,103 @@ const App = () => {
     saveSessionDraft(nextDraft);
   };
 
-  const handleQuickRecovery = (fatigue: number, doms: number, sleepHours: number) => {
+  const handleRecoverySave = (payload: {
+    fatigue: number;
+    upperDoms: number;
+    lowerDoms: number;
+    shoulderStress: number;
+    sleepHours: number;
+    memo?: string;
+  }) => {
     setRawLogs(
-      appendRecoveryLog({
+      upsertRecoveryLog({
         date: today,
-        피로도: fatigue,
-        근육통: doms,
-        수면시간: sleepHours
+        fatigue: payload.fatigue,
+        upperDoms: payload.upperDoms,
+        lowerDoms: payload.lowerDoms,
+        shoulderStress: payload.shoulderStress,
+        sleepHours: payload.sleepHours,
+        memo: payload.memo
       })
     );
   };
 
-  const applyScenario = (scenario: ScenarioKey) => {
-    let nextLogs = defaultRawLogs;
-
-    if (scenario === "근육통 높음") {
-      nextLogs = {
-        ...defaultRawLogs,
-        recoveryLogs: [
-          ...defaultRawLogs.recoveryLogs,
-          { date: today, 피로도: 6, 근육통: 7, 수면시간: 6, 메모: "하체 근육통이 큼" }
-        ]
-      };
-    }
-
-    if (scenario === "회복 우선") {
-      nextLogs = {
-        ...defaultRawLogs,
-        recoveryLogs: [
-          ...defaultRawLogs.recoveryLogs,
-          { date: today, 피로도: 9, 근육통: 8, 수면시간: 5, 메모: "전신 피로가 큼" }
-        ]
-      };
-    }
-
-    if (scenario === "미완료 2회") {
-      nextLogs = {
-        ...defaultRawLogs,
-        sessionLogs: [
-          ...defaultRawLogs.sessionLogs,
-          {
-            date: "2026-03-28",
-            sessionTemplateId: "lean-mobility",
-            completed: false,
-            intensity: "정상"
-          }
-        ],
-        recoveryLogs: [
-          ...defaultRawLogs.recoveryLogs,
-          { date: today, 피로도: 6, 근육통: 5, 수면시간: 6, 메모: "이틀 연속 루틴을 놓침" }
-        ]
-      };
-    }
-
-    saveRawLogs(nextLogs);
-    setRawLogs(nextLogs);
+  const resetTodaySession = () => {
     setDraft(undefined);
-    removeStorage("performance-app-v3/session-draft");
+    clearSessionDraft();
+    setTodaySessionResetKey((current) => current + 1);
+  };
+
+  const completeTodaySession = () => {
+    const selectedVersion = draft?.selectedVersion ?? plannerOutput.todayPlan.version;
+    const selectedPlan = plannerOutput.availablePlans[selectedVersion];
+
+    setRawLogs(
+      upsertSessionLog({
+        date: today,
+        sessionId: selectedPlan.id,
+        baseSessionId: selectedPlan.baseSessionId,
+        completed: true,
+        version: selectedVersion,
+        quality: selectedVersion === "normal" ? "clean" : "managed"
+      })
+    );
+  };
+
+  const markTodaySessionMissed = (missedReason: MissedSessionReason) => {
+    const selectedVersion = draft?.selectedVersion ?? plannerOutput.todayPlan.version;
+    const selectedPlan = plannerOutput.availablePlans[selectedVersion];
+
+    setRawLogs(
+      upsertSessionLog({
+        date: today,
+        sessionId: selectedPlan.id,
+        baseSessionId: selectedPlan.baseSessionId,
+        completed: false,
+        version: selectedVersion,
+        quality: "failed",
+        missedReason
+      })
+    );
+  };
+
+  const resetTodayRecord = () => {
+    const withoutRecovery = removeRecoveryLogByDate(today);
+    const withoutSessionLogs = removeSessionLogsByDate(today);
+
+    setRawLogs({
+      recoveryLogs: withoutRecovery.recoveryLogs,
+      sessionLogs: withoutSessionLogs.sessionLogs
+    });
+    setDraft(undefined);
+    clearSessionDraft();
+    setTodaySessionResetKey((current) => current + 1);
   };
 
   const toggleCalendarComplete = (date: string) => {
     const existing = rawLogs.sessionLogs.find((log) => log.date === date);
-    const sessionTemplateId = existing?.sessionTemplateId ?? plannerOutput.today.id.replace("-normal", "");
-    const next = upsertSessionLog({
+    if (existing) {
+      setRawLogs(upsertSessionLog({ ...existing, completed: !existing.completed }));
+      return;
+    }
+
+    const planForDate = createPlannerOutput({
       date,
-      sessionTemplateId,
-      completed: !existing?.completed,
-      intensity: existing?.intensity ?? "정상"
+      profile,
+      recoveryState: getRecoveryForDate(rawLogs.recoveryLogs, date),
+      sessionLogs: rawLogs.sessionLogs
     });
 
-    setRawLogs(next);
+    setRawLogs(
+      upsertSessionLog({
+        date,
+        sessionId: planForDate.todayPlan.id,
+        baseSessionId: planForDate.todayPlan.baseSessionId,
+        completed: true,
+        version: planForDate.todayPlan.version,
+        quality: "managed"
+      })
+    );
   };
 
   return (
@@ -197,9 +226,9 @@ const App = () => {
       {screen === "home" ? (
         <HomeScreen
           plannerOutput={plannerOutput}
+          weeklyPlan={weeklyPlan}
           draft={draft}
           onStart={() => setScreen("today")}
-          trainingWindow={trainingWindow}
         />
       ) : null}
 
@@ -207,22 +236,29 @@ const App = () => {
         <TodaySessionScreen
           plannerOutput={plannerOutput}
           draft={draft}
-          onIntensityChange={updateDraft}
+          onVersionChange={updateDraft}
+          onComplete={completeTodaySession}
+          onMarkMissed={markTodaySessionMissed}
+          onReset={resetTodaySession}
+          resetKey={todaySessionResetKey}
         />
       ) : null}
 
       {screen === "recovery" ? (
         <RecoveryNutritionScreen
-          recoveryState={rawLogs.recoveryLogs.at(-1)}
-          onQuickUpdate={handleQuickRecovery}
+          date={today}
+          recoveryState={getRecoveryForDate(rawLogs.recoveryLogs, today)}
+          recoveryHistory={[...rawLogs.recoveryLogs].reverse().slice(0, 5)}
+          recommendedVersion={plannerOutput.todayPlan.version}
+          onSave={handleRecoverySave}
         />
       ) : null}
 
       {screen === "records" ? (
         <RecordsScreen
-          sessionLogs={rawLogs.sessionLogs}
           calendarDays={calendarDays}
           onToggleComplete={toggleCalendarComplete}
+          onResetToday={resetTodayRecord}
         />
       ) : null}
     </main>

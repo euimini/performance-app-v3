@@ -1,6 +1,14 @@
+import type { SessionVersion } from "../session/types";
+
+export type SessionQuality = "clean" | "managed" | "failed";
+export type MissedSessionReason = "schedule" | "fatigue" | "soreness" | "pain" | "illness";
+
 export type SessionLog = {
   date: string;
-  sessionTemplateId: string;
+  sessionId: string;
+  baseSessionId: string;
   completed: boolean;
-  intensity: "정상" | "가볍게" | "회복";
+  version: SessionVersion;
+  quality: SessionQuality;
+  missedReason?: MissedSessionReason;
 };

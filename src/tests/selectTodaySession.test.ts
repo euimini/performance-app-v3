@@ -3,21 +3,28 @@ import { defaultOnboardingProfile } from "../repositories/onboardingProfileRepos
 import { selectTodaySession } from "../selectors/selectTodaySession";
 
 describe("selectTodaySession", () => {
-  it("draft에 맞는 today session 선택", () => {
+  it("uses the manually selected version from draft", () => {
     const output = createPlannerOutput({
-      date: "2026-03-29",
+      date: "2026-03-30",
       profile: defaultOnboardingProfile,
-      recoveryState: { date: "2026-03-29", 피로도: 4, 근육통: 3, 수면시간: 7 },
+      recoveryState: {
+        date: "2026-03-30",
+        fatigue: 4,
+        upperDoms: 3,
+        lowerDoms: 3,
+        shoulderStress: 3,
+        sleepHours: 7
+      },
       sessionLogs: []
     });
 
     const selected = selectTodaySession(output, {
-      date: "2026-03-29",
-      selectedPlanId: output.recovery.id,
-      selectedIntensity: "회복"
+      date: "2026-03-30",
+      selectedSessionId: output.availablePlans.recovery.id,
+      selectedVersion: "recovery"
     });
 
-    expect(selected.intensity).toBe("회복");
-    expect(selected.selectedPlan.강도라벨).toBe("회복");
+    expect(selected.version).toBe("recovery");
+    expect(selected.selectedPlan.title).toBe("회복 + 가동성 Day");
   });
 });

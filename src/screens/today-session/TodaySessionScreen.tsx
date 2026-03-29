@@ -1,20 +1,33 @@
-import type { PlannerOutput, SessionDraft } from "../../domain/session/types";
+import type { MissedSessionReason } from "../../domain/records/SessionLog";
+import type { PlannerOutput, SessionDraft, SessionVersion } from "../../domain/session/types";
 import { SessionPlanView } from "../../components/session/SessionPlanView";
 import { selectTodaySession } from "../../selectors/selectTodaySession";
 
 type TodaySessionScreenProps = {
   plannerOutput: PlannerOutput;
   draft?: SessionDraft;
-  onIntensityChange: (intensity: "정상" | "가볍게" | "회복") => void;
+  onVersionChange: (version: SessionVersion) => void;
+  onReset: () => void;
+  resetKey: number;
+  onComplete: () => void;
+  onMarkMissed: (reason: MissedSessionReason) => void;
 };
 
 export const TodaySessionScreen = ({
   plannerOutput,
   draft,
-  onIntensityChange
+  onVersionChange,
+  onReset,
+  resetKey,
+  onComplete,
+  onMarkMissed
 }: TodaySessionScreenProps) => (
   <SessionPlanView
+    key={resetKey}
     selection={selectTodaySession(plannerOutput, draft)}
-    onIntensityChange={onIntensityChange}
+    onVersionChange={onVersionChange}
+    onComplete={onComplete}
+    onMarkMissed={onMarkMissed}
+    onReset={onReset}
   />
 );

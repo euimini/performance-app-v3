@@ -1,71 +1,111 @@
-import type { SessionLog } from "../records/SessionLog";
+import type { MissedSessionReason, SessionLog } from "../records/SessionLog";
 import type { RecoveryState } from "../recovery/RecoveryState";
+
+export type SessionVersion = "normal" | "reduced" | "recovery";
+
+export type SessionCategory = "pull" | "push" | "lower" | "firefighter" | "recovery" | "rest";
+
+export type GoalTag =
+  | "2027-firefighter"
+  | "pull-up-growth"
+  | "fat-loss"
+  | "mobility"
+  | "recovery";
+
+export type CardPriority = "firefighter" | "pull-up" | "recovery";
+
+export type FirefighterStationName =
+  | "stair"
+  | "hose"
+  | "carry"
+  | "rescue"
+  | "hold"
+  | "shuttle";
+
+export type PullTrackLevel = "full" | "assisted" | "plateau";
+
+export type PullProgressionStep = "quality" | "volume" | "density" | "load" | "regression";
+export type SessionPriority = "A" | "B" | "C";
 
 export type ExercisePrescription = {
   id: string;
-  운동명: string;
-  세트: number;
-  반복?: string;
-  시간초?: number;
-  휴식초: number;
-  목표자각도: string;
-  타이머초: number;
-  대체동작: string;
-  코칭문구: string;
+  name: string;
+  prescription: string;
+  rest: string;
+  targetRpe: string;
+  substitute: string;
+  coachingCue: string;
+  timerSeconds?: number;
+  stationName?: FirefighterStationName;
+  stationLabel?: string;
 };
 
 export type SessionBlock = {
   id: string;
-  블록명: string;
-  목적: string;
-  운동목록: ExercisePrescription[];
+  title: string;
+  purpose: string;
+  estimatedMinutes: number;
+  exercises: ExercisePrescription[];
 };
 
-export type SessionPlan = {
-  id: string;
-  세션명: string;
-  목적: string;
-  한줄설명: string;
-  강도라벨: "정상";
-  블록들: SessionBlock[];
+export type FirefighterStationMapping = {
+  stationName: FirefighterStationName;
+  testLabel: string;
+  movementLabel: string;
+  prescription: string;
+  rest: string;
+  note: string;
 };
 
-export type ReducedSessionPlan = {
-  id: string;
-  세션명: string;
-  목적: string;
-  한줄설명: string;
-  강도라벨: "가볍게";
-  전환이유: string;
-  블록들: SessionBlock[];
+export type PullUpProgressionMeta = {
+  trackLabel: string;
+  currentTier: string;
+  primaryMovement: string;
+  qualityGate: string;
+  progressionStep: PullProgressionStep;
+  progressionRule: string;
+  fallbackMovements: string[];
+  readinessAdjustment: string;
 };
 
-export type RecoverySessionPlan = {
+export type SessionCard = {
   id: string;
-  세션명: string;
-  목적: string;
-  한줄설명: string;
-  강도라벨: "회복";
-  전환이유: string;
-  블록들: SessionBlock[];
+  baseSessionId: string;
+  title: string;
+  category: SessionCategory;
+  version: SessionVersion;
+  priority: SessionPriority;
+  recoveryCost: number;
+  focusTags: string[];
+  goalTags: GoalTag[];
+  summary: string;
+  description: string;
+  estimatedMinutes: number;
+  densityLabel: string;
+  exercises: ExercisePrescription[];
+  blocks: SessionBlock[];
+  firefighterStations?: FirefighterStationMapping[];
+  pullUpMeta?: PullUpProgressionMeta;
+  blockedBy: string[];
+  recommendedWhen: string[];
+  fallbackSessionId: string;
+  notes: string[];
+  progressionRules: string[];
+  recoveryTriggers: string[];
 };
 
 export type SessionDraft = {
   date: string;
-  selectedPlanId: string;
-  selectedIntensity: "정상" | "가볍게" | "회복";
+  selectedSessionId: string;
+  selectedVersion: SessionVersion;
   startedAt?: string;
 };
 
-export type MissedSessionAction =
-  | "그대로 재배정"
-  | "볼륨 감산 후 재배정"
-  | "회복 세션으로 전환";
-
 export type OnboardingProfile = {
-  주요목표: string[];
-  장비: string[];
-  제약: string[];
+  primaryGoals: string[];
+  equipment: string[];
+  constraints: string[];
+  pullTrackLevel: PullTrackLevel;
 };
 
 export type PlannerInput = {
@@ -76,24 +116,63 @@ export type PlannerInput = {
   sessionDraft?: SessionDraft;
 };
 
+export type ReadinessInterpretation = {
+  score: number;
+  label: string;
+  summary: string;
+  affectedBy: string[];
+};
+
+export type NextStepPreview = {
+  label: string;
+  title: string;
+  focus: string;
+};
+
 export type PlannerOutput = {
   date: string;
-  hero: {
-    세션명: string;
-    목적: string;
-    요약문구: string;
-    운동목록: string[];
-    시작버튼문구: string;
-  };
-  today: SessionPlan;
-  reduced: ReducedSessionPlan;
-  recovery: RecoverySessionPlan;
-  defaultIntensity: "정상" | "가볍게" | "회복";
-  missedSessionAction: MissedSessionAction;
+  phase: string;
+  baseSessionId: string;
+  cardPriority: CardPriority;
+  readiness: ReadinessInterpretation;
+  todayPlan: SessionCard;
+  fallbackPlan: SessionCard;
+  availablePlans: Record<SessionVersion, SessionCard>;
+  warnings: string[];
+  selectedReason: string[];
+  nextFlow: NextStepPreview[];
 };
 
 export type TodaySessionSelection = {
-  intensity: "정상" | "가볍게" | "회복";
-  selectedPlan: SessionPlan | ReducedSessionPlan | RecoverySessionPlan;
-  hero: PlannerOutput["hero"];
+  version: SessionVersion;
+  selectedPlan: SessionCard;
+  fallbackPlan: SessionCard;
+  readiness: ReadinessInterpretation;
+  warnings: string[];
+};
+
+export type WeeklyPlanStatus = "completed" | "missed" | "today" | "scheduled";
+
+export type WeeklyPlanItem = {
+  date: string;
+  dayLabel: string;
+  sessionTitle: string;
+  sessionType: SessionVersion | "rest";
+  summary: string;
+  estimatedMinutes: number;
+  densityLabel: string;
+  focusTags: string[];
+  keyExercises: string[];
+  warnings: string[];
+  status: WeeklyPlanStatus;
+  isToday: boolean;
+  rescheduledFrom?: string;
+  missedReason?: MissedSessionReason;
+};
+
+export type WeeklyPlannerOutput = {
+  weekLabel: string;
+  startDate: string;
+  endDate: string;
+  items: WeeklyPlanItem[];
 };
