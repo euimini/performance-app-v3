@@ -179,7 +179,7 @@ export const SessionPlanView = ({
 
       {currentPlan.firefighterStations ? (
         <section className="station-panel">
-          <div className="eyebrow">시험 스테이션 매핑</div>
+          <div className="eyebrow">시험 종목 대응</div>
           <div className="station-grid">
             {currentPlan.firefighterStations.map((station) => (
               <article className="station-card" key={station.stationName}>

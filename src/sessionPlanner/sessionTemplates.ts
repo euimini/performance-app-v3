@@ -112,10 +112,10 @@ const buildCard = (
 };
 
 const warmupBlock = (prefix: string, exercises: ExercisePrescription[], minutes: number) =>
-  createBlock(`${prefix}-prep`, "관절/가동성 준비", "관절을 열고 본운동에 들어갈 준비를 합니다.", minutes, exercises);
+  createBlock(`${prefix}-prep`, "워밍업 스트레칭", "관절을 풀고 본운동 전에 몸을 데웁니다.", minutes, exercises);
 
 const activationBlock = (prefix: string, exercises: ExercisePrescription[], minutes: number) =>
-  createBlock(`${prefix}-activation`, "동적 준비/활성화", "주 움직임 패턴과 코어를 깨웁니다.", minutes, exercises);
+  createBlock(`${prefix}-activation`, "가벼운 예열 동작", "본운동 전에 주동작과 코어를 먼저 깨웁니다.", minutes, exercises);
 
 const cardioFinishBlock = (prefix: string, prescription: string, minutes: number) =>
   createBlock(`${prefix}-cardio`, "유산소 마무리", "감량과 체력 대비를 위해 유산소를 필수로 넣습니다.", minutes, [
@@ -131,7 +131,7 @@ const cardioFinishBlock = (prefix: string, prescription: string, minutes: number
   ]);
 
 const cooldownBlock = (prefix: string, exercises: ExercisePrescription[], minutes: number) =>
-  createBlock(`${prefix}-cooldown`, "정적 스트레칭 / 회복 정리", "심박을 내리고 다음 세션으로 이어질 수 있게 정리합니다.", minutes, exercises);
+  createBlock(`${prefix}-cooldown`, "마무리 스트레칭", "심박을 내리고 다음 세션으로 이어질 수 있게 정리합니다.", minutes, exercises);
 
 const pullPrimaryByTrack = (
   track: PullTrackLevel,
@@ -211,8 +211,8 @@ const buildPullCard = (
     warmupBlock("pull", [
       createExercise({
         id: "pull-warmup-1",
-        name: "손목/전완 가동성",
-        prescription: "2라운드 x 60초",
+        name: "손바닥 짚고 손목 앞뒤 기울이기",
+        prescription: "2라운드 x 10회",
         rest: "라운드 간 20초",
         targetRpe: "RPE 3",
         substitute: "가벼운 악력볼 쥐기",
@@ -220,7 +220,7 @@ const buildPullCard = (
       }),
       createExercise({
         id: "pull-warmup-2",
-        name: "벤치 흉추 신전 + 광배 스트레치",
+        name: "벤치 잡고 광배 늘리기",
         prescription: "2라운드 x 45초",
         rest: "라운드 간 20초",
         targetRpe: "RPE 3",
@@ -231,7 +231,7 @@ const buildPullCard = (
     activationBlock("pull", [
       createExercise({
         id: "pull-activation-1",
-        name: "스캡 풀",
+        name: "풀업바 스캡 풀업",
         prescription: isReduced ? "3세트 x 6회" : "4세트 x 8회",
         rest: "세트 간 30초",
         targetRpe: "RPE 4",
@@ -240,7 +240,7 @@ const buildPullCard = (
       }),
       createExercise({
         id: "pull-activation-2",
-        name: "데드 버그",
+        name: "데드버그 3초 정지",
         prescription: isReduced ? "3세트 x 8회" : "4세트 x 10회",
         rest: "세트 간 30초",
         targetRpe: "RPE 4",
@@ -285,7 +285,7 @@ const buildPullCard = (
         rest: "세트 간 60초",
         targetRpe: "RPE 7",
         substitute: "인클라인 덤벨 로우",
-        coachingCue: "좌우 차이를 줄여 호스 끌기 패턴 안정성을 높입니다."
+        coachingCue: "좌우 차이를 줄여 호스 끌기 동작을 더 안정적으로 만듭니다."
       }),
       createExercise({
         id: "pull-volume-3",
@@ -351,11 +351,11 @@ const buildPullCard = (
       : "상체 피로나 미완료 풀 세션이 있을 때도 구조는 유지하는 축소 당기기 처방입니다.",
     version === "normal"
       ? `${context.readinessNote} 품질 반복 → 총량 → 밀도 순으로 진행하는 날입니다.`
-      : `${context.readinessNote} 품질이 무너지지 않도록 총량만 줄이고 패턴은 유지합니다.`,
+      : `${context.readinessNote} 품질이 무너지지 않도록 총량만 줄이고 풀업 감각은 유지합니다.`,
     blocks,
     "recovery-mobility",
     {
-      focusTags: ["pull-up focus", "grip", "lat volume", "conditioning"],
+      focusTags: ["풀업 집중", "그립", "등 볼륨", "유산소"],
       goalTags: ["pull-up-growth", "2027-firefighter", "fat-loss"],
       pullUpMeta: {
         trackLabel:
@@ -382,7 +382,7 @@ const buildPullCard = (
         readinessAdjustment:
           version === "normal"
             ? "폼이 무너지면 즉시 축소 Day 또는 회복 Day로 내립니다."
-            : "오늘은 패턴 유지가 목표이며, 억지 볼륨은 금지합니다."
+            : "오늘은 풀업 감각 유지가 목표이며, 억지 볼륨은 금지합니다."
       },
       blockedBy: ["어깨/팔꿈치 부담 8 이상", "상체 DOMS 8 이상"],
       recommendedWhen: ["상체 상태가 무난한 날", "회복일 다음"],
@@ -400,7 +400,7 @@ const buildPushCard = (version: Extract<SessionVersion, "normal" | "reduced">): 
     warmupBlock("push", [
       createExercise({
         id: "push-warmup-1",
-        name: "벤치 흉추 신전 스트레치",
+        name: "벤치 위 흉추 신전 스트레치",
         prescription: "2세트 x 45초",
         rest: "세트 간 20초",
         targetRpe: "RPE 3",
@@ -409,7 +409,7 @@ const buildPushCard = (version: Extract<SessionVersion, "normal" | "reduced">): 
       }),
       createExercise({
         id: "push-warmup-2",
-        name: "가슴/전면어깨 오프너",
+        name: "벤치 가슴 열기 스트레치",
         prescription: "2세트 x 45초",
         rest: "세트 간 20초",
         targetRpe: "RPE 3",
@@ -420,7 +420,7 @@ const buildPushCard = (version: Extract<SessionVersion, "normal" | "reduced">): 
     activationBlock("push", [
       createExercise({
         id: "push-activation-1",
-        name: "벽 슬라이드",
+        name: "벽 슬라이드 + 리프트오프",
         prescription: isReduced ? "3세트 x 8회" : "4세트 x 10회",
         rest: "세트 간 30초",
         targetRpe: "RPE 4",
@@ -429,12 +429,12 @@ const buildPushCard = (version: Extract<SessionVersion, "normal" | "reduced">): 
       }),
       createExercise({
         id: "push-activation-2",
-        name: "인클라인 푸시업",
+        name: "벤치 인클라인 푸시업",
         prescription: isReduced ? "3세트 x 10회" : "4세트 x 12회",
         rest: "세트 간 30초",
         targetRpe: "RPE 5",
         substitute: "벽 푸시업",
-        coachingCue: "어깨 통증 없이 밀기 패턴을 켭니다."
+        coachingCue: "어깨 통증 없이 밀기 동작을 먼저 가볍게 깨웁니다."
       })
     ], isReduced ? 10 : 14),
     createBlock("push-main", "메인 프레스", "밀기 힘과 상체 지지력을 확보합니다.", isReduced ? 24 : 32, [
@@ -454,7 +454,7 @@ const buildPushCard = (version: Extract<SessionVersion, "normal" | "reduced">): 
         rest: "세트 간 75초",
         targetRpe: isReduced ? "RPE 6-7" : "RPE 7",
         substitute: "한손 덤벨 프레스",
-        coachingCue: "몸통을 고정해 장비를 밀고 버티는 패턴을 만듭니다."
+        coachingCue: "몸통을 고정해 장비를 밀고 버티는 힘을 만듭니다."
       })
     ]),
     createBlock("push-volume", "보조 볼륨/어깨 보호", "밀기 균형과 삼두 지구력을 충분히 채웁니다.", isReduced ? 18 : 26, [
@@ -486,7 +486,7 @@ const buildPushCard = (version: Extract<SessionVersion, "normal" | "reduced">): 
         coachingCue: "장비 들고 버티기 대응으로 흉곽과 전면 코어를 강화합니다."
       })
     ]),
-    createBlock("push-conditioning", "소방형 컨디셔닝", "밀기 날에도 하체와 운반 패턴을 끊지 않습니다.", isReduced ? 10 : 16, [
+    createBlock("push-conditioning", "소방형 컨디셔닝", "밀기 날에도 하체와 운반 감각을 끊지 않습니다.", isReduced ? 10 : 16, [
       createExercise({
         id: "push-conditioning-1",
         name: "벤치 스텝업",
@@ -540,15 +540,15 @@ const buildPushCard = (version: Extract<SessionVersion, "normal" | "reduced">): 
       : "어깨 부담이 있는 날에도 구조는 유지하고 볼륨만 줄인 푸시 세션입니다.",
     version === "normal"
       ? "풀업 우선 흐름의 불균형을 막고 장비 홀드 대응을 함께 키웁니다."
-      : "어깨나 팔꿈치가 예민한 날에는 밀기 패턴과 회복 흐름만 유지합니다.",
+      : "어깨나 팔꿈치가 예민한 날에는 밀기 감각과 회복 흐름만 유지합니다.",
     blocks,
     "recovery-mobility",
     {
-      focusTags: ["push support", "equipment hold", "shoulder care", "conditioning"],
+      focusTags: ["상체 밀기", "장비 버티기", "어깨 보호", "유산소"],
       goalTags: ["2027-firefighter", "mobility", "fat-loss"],
       blockedBy: ["어깨/팔꿈치 부담 8 이상"],
       recommendedWhen: ["하체는 무겁지만 상체는 가능한 날", "풀업 데이 다음"],
-      notes: ["밀기 날도 유산소와 직무형 패턴을 빼지 않습니다."],
+      notes: ["밀기 날도 유산소와 직무형 감각을 빼지 않습니다."],
       progressionRules: ["프레스가 2주 연속 안정되면 중량 또는 반복을 소폭 올립니다."],
       recoveryTriggers: ["전면 어깨 통증", "프레스 중 허리 과신전"]
     }
@@ -562,8 +562,8 @@ const buildLowerCard = (version: Extract<SessionVersion, "normal" | "reduced">):
     warmupBlock("lower", [
       createExercise({
         id: "lower-warmup-1",
-        name: "발목 가동성",
-        prescription: "2라운드 x 60초",
+        name: "벽 짚고 무릎 밀기",
+        prescription: "2라운드 x 각 발목 10회",
         rest: "라운드 간 20초",
         targetRpe: "RPE 3",
         substitute: "벽 발목 스트레치",
@@ -571,8 +571,8 @@ const buildLowerCard = (version: Extract<SessionVersion, "normal" | "reduced">):
       }),
       createExercise({
         id: "lower-warmup-2",
-        name: "고관절 오프너",
-        prescription: "2라운드 x 45초",
+        name: "월드그레이티스트 스트레치",
+        prescription: "2라운드 x 좌우 5회",
         rest: "라운드 간 20초",
         targetRpe: "RPE 3",
         substitute: "월드그레이티스트 스트레치",
@@ -582,7 +582,7 @@ const buildLowerCard = (version: Extract<SessionVersion, "normal" | "reduced">):
     activationBlock("lower", [
       createExercise({
         id: "lower-activation-1",
-        name: "글루트 브리지",
+        name: "바닥 글루트 브리지",
         prescription: isReduced ? "3세트 x 10회" : "4세트 x 12회",
         rest: "세트 간 30초",
         targetRpe: "RPE 4",
@@ -591,12 +591,12 @@ const buildLowerCard = (version: Extract<SessionVersion, "normal" | "reduced">):
       }),
       createExercise({
         id: "lower-activation-2",
-        name: "맨몸 스텝업",
+        name: "벤치 맨몸 스텝업",
         prescription: isReduced ? "2세트 x 각 다리 8회" : "3세트 x 각 다리 10회",
         rest: "세트 간 30초",
         targetRpe: "RPE 4",
         substitute: "맨몸 스쿼트",
-        coachingCue: "중량 전에 계단 패턴을 부드럽게 만듭니다."
+        coachingCue: "중량 전에 계단 오르기 동작을 부드럽게 만듭니다."
       })
     ], isReduced ? 10 : 14),
     createBlock("lower-main", "메인 하체 힘", "계단, 운반, 구조를 위한 하체 출력을 확보합니다.", isReduced ? 24 : 34, [
@@ -616,7 +616,7 @@ const buildLowerCard = (version: Extract<SessionVersion, "normal" | "reduced">):
         rest: "세트 간 90초",
         targetRpe: isReduced ? "RPE 6-7" : "RPE 7-8",
         substitute: "바벨 데드리프트 가볍게",
-        coachingCue: "인명 구조 대체 패턴으로 후면사슬을 강하게 씁니다."
+        coachingCue: "인명 구조 대체 동작으로 엉덩이와 햄스트링을 강하게 씁니다."
       })
     ]),
     createBlock("lower-volume", "보조 볼륨/근지구력", "하체 체감 볼륨을 충분히 확보합니다.", isReduced ? 18 : 28, [
@@ -651,7 +651,7 @@ const buildLowerCard = (version: Extract<SessionVersion, "normal" | "reduced">):
     createBlock("lower-support", "운반/버티기 보강", "좁은 공간에서도 운반과 장비 홀드 대응을 유지합니다.", isReduced ? 12 : 18, [
       createExercise({
         id: "lower-support-1",
-        name: "덤벨 파머 홀드 마치",
+        name: "덤벨 잡고 제자리 걷기",
         prescription: isReduced ? "3세트 x 25초" : "4세트 x 40초",
         rest: "세트 간 45초",
         targetRpe: isReduced ? "RPE 6" : "RPE 7",
@@ -699,14 +699,14 @@ const buildLowerCard = (version: Extract<SessionVersion, "normal" | "reduced">):
     version,
     version === "normal"
       ? "하체 힘, 계단 적응, 운반/버티기, 유산소를 묶은 고볼륨 하체 처방입니다."
-      : "하체 DOMS가 있어도 패턴과 심폐를 유지하는 축소 하체 세션입니다.",
+      : "하체 DOMS가 있어도 하체 감각과 심폐를 유지하는 축소 하체 세션입니다.",
     version === "normal"
       ? "소방 서킷 다음에도 하체 출력이 떨어지지 않게 별도 하체일을 유지합니다."
       : "하체 피로가 높을 때는 중량을 줄이되 구조는 유지합니다.",
     blocks,
     "recovery-mobility",
     {
-      focusTags: ["lower strength", "stairs", "carry", "conditioning"],
+      focusTags: ["하체 힘", "계단", "운반", "유산소"],
       goalTags: ["2027-firefighter", "fat-loss"],
       blockedBy: ["하체 DOMS 8 이상"],
       recommendedWhen: ["상체 데이 다음", "소방 서킷 후 회복이 괜찮은 주간"],
@@ -732,15 +732,15 @@ const firefighterStations = (version: SessionVersion): FirefighterStationMapping
     {
       stationName: "hose",
       testLabel: "소방호스 끌고 당기기",
-      movementLabel: "타월 그립 덤벨 로우",
-      prescription: isReduced ? "3세트 x 10회" : "4세트 x 12회",
+      movementLabel: "원암 덤벨로우 + 덤벨 홀드",
+      prescription: isReduced ? "3세트 x 10회 + 마지막 10초 홀드" : "4세트 x 12회 + 마지막 10초 홀드",
       rest: "세트 간 45초",
-      note: "좁은 공간에서도 끌기/당기기와 그립 지구력을 함께 가져갑니다."
+      note: "타월 없이도 로우와 정적 홀드를 묶어 등과 그립 지구력을 함께 가져갑니다."
     },
     {
       stationName: "carry",
       testLabel: "중량물 운반",
-      movementLabel: "덤벨 파머 홀드 마치",
+      movementLabel: "덤벨 잡고 제자리 걷기",
       prescription: isReduced ? "3세트 x 30초" : "4세트 x 45초",
       rest: "세트 간 40초",
       note: "긴 이동 대신 제자리 마치와 홀드로 운반 능력을 대체합니다."
@@ -751,7 +751,7 @@ const firefighterStations = (version: SessionVersion): FirefighterStationMapping
       movementLabel: "바벨 데드리프트",
       prescription: isReduced ? "3세트 x 5회" : "4세트 x 6회",
       rest: "세트 간 60초",
-      note: "더미 드래그 대신 힌지 기반 당기기 패턴을 강하게 살립니다."
+      note: "더미 드래그 대신 힌지 기반 끌어내기 힘을 강하게 살립니다."
     },
     {
       stationName: "hold",
@@ -780,8 +780,8 @@ const buildFirefighterCard = (version: Extract<SessionVersion, "normal" | "reduc
     warmupBlock("firefighter", [
       createExercise({
         id: "firefighter-warmup-1",
-        name: "발목/무릎 준비",
-        prescription: "2라운드 x 60초",
+        name: "벽 짚고 무릎 밀기",
+        prescription: "2라운드 x 각 발목 10회",
         rest: "라운드 간 20초",
         targetRpe: "RPE 3",
         substitute: "벽 발목 스트레치",
@@ -789,7 +789,7 @@ const buildFirefighterCard = (version: Extract<SessionVersion, "normal" | "reduc
       }),
       createExercise({
         id: "firefighter-warmup-2",
-        name: "어깨/흉추 오프너",
+        name: "벤치 흉추 신전 스트레치",
         prescription: "2라운드 x 45초",
         rest: "라운드 간 20초",
         targetRpe: "RPE 3",
@@ -800,7 +800,7 @@ const buildFirefighterCard = (version: Extract<SessionVersion, "normal" | "reduc
     activationBlock("firefighter", [
       createExercise({
         id: "firefighter-activation-1",
-        name: "스캡 풀",
+        name: "풀업바 스캡 풀업",
         prescription: isReduced ? "3세트 x 6회" : "4세트 x 8회",
         rest: "세트 간 30초",
         targetRpe: "RPE 4",
@@ -809,15 +809,15 @@ const buildFirefighterCard = (version: Extract<SessionVersion, "normal" | "reduc
       }),
       createExercise({
         id: "firefighter-activation-2",
-        name: "글루트 브리지",
+        name: "바닥 글루트 브리지",
         prescription: isReduced ? "3세트 x 10회" : "4세트 x 12회",
         rest: "세트 간 30초",
         targetRpe: "RPE 4",
         substitute: "힙 브리지 홀드",
-        coachingCue: "계단과 구조 패턴 전 둔근을 먼저 활성화합니다."
+        coachingCue: "계단과 구조 동작 전에 둔근을 먼저 활성화합니다."
       })
     ], isReduced ? 10 : 14),
-    createBlock("firefighter-circuit-a", "소방 스테이션 A", "계단, 끌기, 운반을 이어 수행합니다.", isReduced ? 22 : 30, stations.slice(0, 3).map((station) =>
+    createBlock("firefighter-circuit-a", "소방 종목 1~3", "계단, 끌기, 운반을 이어 수행합니다.", isReduced ? 22 : 30, stations.slice(0, 3).map((station) =>
       createExercise({
         id: `firefighter-${station.stationName}`,
         name: `${station.testLabel} → ${station.movementLabel}`,
@@ -830,7 +830,7 @@ const buildFirefighterCard = (version: Extract<SessionVersion, "normal" | "reduc
         stationLabel: station.testLabel
       })
     )),
-    createBlock("firefighter-circuit-b", "소방 스테이션 B", "구조와 홀드를 이어 수행해 후면사슬과 버티기를 통합합니다.", isReduced ? 18 : 26, stations.slice(3, 5).map((station) =>
+    createBlock("firefighter-circuit-b", "소방 종목 4~5", "구조와 버티기를 이어 수행해 후면사슬과 버티기를 통합합니다.", isReduced ? 18 : 26, stations.slice(3, 5).map((station) =>
       createExercise({
         id: `firefighter-${station.stationName}`,
         name: `${station.testLabel} → ${station.movementLabel}`,
@@ -923,14 +923,14 @@ const buildFirefighterCard = (version: Extract<SessionVersion, "normal" | "reduc
     blocks,
     "recovery-mobility",
     {
-      focusTags: ["fire circuit", "carry", "shuttle", "grip"],
+      focusTags: ["소방 서킷", "운반", "셔틀 대비", "그립"],
       goalTags: ["2027-firefighter", "fat-loss"],
       firefighterStations: stations,
       blockedBy: ["상체 DOMS 8 이상", "하체 DOMS 8 이상", "전신 피로 8 이상"],
       recommendedWhen: ["주간 시작", "회복일 다음", "상하체가 동시에 버틸 수 있는 날"],
       notes: ["실제 드래그와 장거리 캐리는 현재 환경에 맞게 홀드, 마치, 데드리프트로 바꿉니다."],
       progressionRules: ["모든 스테이션이 안정되면 다음엔 시간 또는 반복을 올립니다."],
-      recoveryTriggers: ["계단 패턴 붕괴", "로우에서 허리 개입 과다", "인터벌 중 보폭 통제 불가"]
+      recoveryTriggers: ["계단 동작 붕괴", "로우에서 허리 개입 과다", "인터벌 중 보폭 통제 불가"]
     }
   );
 };
@@ -940,12 +940,21 @@ const buildRecoveryCard = (): SessionCard => {
     warmupBlock("recovery", [
       createExercise({
         id: "recovery-warmup-1",
-        name: "가벼운 전신 관절 순환",
-        prescription: "2라운드 x 4분",
+        name: "목-어깨-고관절 제자리 관절 순환",
+        prescription: "2라운드 x 2분",
         rest: "라운드 간 30초",
         targetRpe: "RPE 2",
         substitute: "전신 제자리 스트레칭",
         coachingCue: "움직이지 않던 관절을 천천히 깨웁니다."
+      }),
+      createExercise({
+        id: "recovery-warmup-2",
+        name: "캣카우 + 흉추 회전",
+        prescription: "2라운드 x 각 6회",
+        rest: "라운드 간 20초",
+        targetRpe: "RPE 2",
+        substitute: "누운 가슴 열기",
+        coachingCue: "허리와 흉추를 부드럽게 움직여 회복 세션에 들어갑니다."
       })
     ], 10),
     createBlock("recovery-cardio", "가벼운 유산소", "회복 흐름을 만들기 위해 혈류와 호흡을 먼저 살립니다.", 18, [
@@ -959,7 +968,7 @@ const buildRecoveryCard = (): SessionCard => {
         coachingCue: "숨은 살짝만 올리고 피로는 더 남기지 않습니다."
       })
     ]),
-    createBlock("recovery-mobility", "전신 mobility", "상체와 하체가 다시 정상적으로 움직이게 가동범위를 복구합니다.", 18, [
+    createBlock("recovery-mobility", "전신 가동성", "상체와 하체가 다시 정상적으로 움직이게 가동범위를 복구합니다.", 18, [
       createExercise({
         id: "recovery-mobility-1",
         name: "고관절 굴곡근 스트레치",
@@ -985,10 +994,10 @@ const buildRecoveryCard = (): SessionCard => {
         rest: "세트 간 15초",
         targetRpe: "RPE 3",
         substitute: "벽 종아리 스트레치",
-        coachingCue: "트레드밀과 계단 패턴으로 굳은 발목을 풀어줍니다."
+        coachingCue: "트레드밀과 계단 동작으로 굳은 발목을 풀어줍니다."
       })
     ]),
-    createBlock("recovery-pattern", "관절 회복/패턴 유지", "회복일에도 완전 공백이 아니라 최소 패턴 유지 자극을 줍니다.", 14, [
+    createBlock("recovery-pattern", "가볍게 몸풀기", "회복일에도 완전 공백이 아니라 가벼운 움직임을 이어갑니다.", 14, [
       createExercise({
         id: "recovery-pattern-1",
         name: "스캡 풀",
@@ -996,7 +1005,7 @@ const buildRecoveryCard = (): SessionCard => {
         rest: "세트 간 30초",
         targetRpe: "RPE 4",
         substitute: "벽 슬라이드",
-        coachingCue: "풀업 패턴을 완전히 끊지 않고 견갑만 부드럽게 살립니다."
+        coachingCue: "풀업 감각을 완전히 끊지 않고 견갑만 부드럽게 살립니다."
       }),
       createExercise({
         id: "recovery-pattern-2",
@@ -1005,7 +1014,7 @@ const buildRecoveryCard = (): SessionCard => {
         rest: "세트 간 30초",
         targetRpe: "RPE 4",
         substitute: "스텝업",
-        coachingCue: "하체 패턴을 가볍게 유지하되 피로는 남기지 않습니다."
+        coachingCue: "하체 움직임을 가볍게 유지하되 피로는 남기지 않습니다."
       })
     ]),
     cooldownBlock("recovery", [
@@ -1027,12 +1036,12 @@ const buildRecoveryCard = (): SessionCard => {
     "회복 + 가동성 Day",
     "recovery",
     "recovery",
-    "완전 공백이 아니라 유산소, mobility, 패턴 유지, 호흡 회복까지 묶은 회복 세션입니다.",
+    "완전 공백이 아니라 유산소, 가동성, 가벼운 몸풀기, 호흡 회복까지 묶은 회복 세션입니다.",
     "피로가 높거나 DOMS가 큰 날에는 무리한 완료보다 회복 세션을 제대로 수행하는 편이 전체 흐름에 더 유리합니다.",
     blocks,
     "recovery-mobility",
     {
-      focusTags: ["mobility", "recovery", "light cardio"],
+      focusTags: ["가동성", "회복", "가벼운 유산소"],
       goalTags: ["recovery", "mobility", "fat-loss"],
       blockedBy: [],
       recommendedWhen: ["전신 피로가 높은 날", "수면이 크게 부족한 날", "미완료 세션 다음"],

@@ -470,14 +470,14 @@ const createDailyPlan = (
                   : "회복 + 가동성 Day",
         focus:
           nextBase === "firefighter-circuit"
-            ? "실전 스테이션 순환"
+            ? "실전 종목 순환"
             : nextBase === "pull-strength"
               ? "풀업 메인 볼륨"
               : nextBase === "lower-strength"
                 ? "하체 힘과 운반"
                 : nextBase === "push-support"
                   ? "상체 균형과 장비 홀드"
-                  : "회복과 mobility"
+                  : "회복과 가동성"
       };
     })
   };

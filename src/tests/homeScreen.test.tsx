@@ -60,7 +60,7 @@ describe("HomeScreen", () => {
 
     render(<HomeScreen plannerOutput={plannerOutput} weeklyPlan={weeklyPlan} onStart={() => undefined} />);
 
-    expect(screen.getByText("시험 매핑")).toBeInTheDocument();
+    expect(screen.getByText("시험 종목 대응")).toBeInTheDocument();
     expect(screen.getByText("계단 오르내리기")).toBeInTheDocument();
     expect(screen.getAllByRole("heading", { level: 3 }).length).toBeGreaterThan(2);
   });

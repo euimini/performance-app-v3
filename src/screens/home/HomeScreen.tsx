@@ -103,8 +103,8 @@ export const HomeScreen = ({ plannerOutput, weeklyPlan, onStart }: HomeScreenPro
 
     {plannerOutput.todayPlan.firefighterStations ? (
       <section className="panel-card">
-        <div className="eyebrow">시험 매핑</div>
-        <h2>소방 서킷 Day는 실제 평가 순서와 같은 이름으로 보여줍니다.</h2>
+        <div className="eyebrow">시험 종목 대응</div>
+        <h2>소방 서킷 Day는 실제 평가 종목에 맞는 대체 동작으로 보여줍니다.</h2>
         <div className="station-grid">
           {plannerOutput.todayPlan.firefighterStations.map((station) => (
             <article className="station-card" key={station.stationName}>
