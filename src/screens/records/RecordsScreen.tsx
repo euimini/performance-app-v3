@@ -5,6 +5,7 @@ type CalendarDay = {
   dayNumber: number;
   inMonth: boolean;
   completed: boolean;
+  missed: boolean;
 };
 
 type RecordsScreenProps = {
@@ -55,6 +56,8 @@ export const RecordsScreen = ({
             className={
               day.completed
                 ? "calendar-day done"
+                : day.missed
+                  ? "calendar-day missed"
                 : day.inMonth
                   ? "calendar-day"
                   : "calendar-day muted"
@@ -63,7 +66,7 @@ export const RecordsScreen = ({
             type="button"
           >
             <span>{day.dayNumber}</span>
-            <small>{day.completed ? "완료" : "미완료"}</small>
+            <small>{day.completed ? "완료" : day.missed ? "미수행" : "미완료"}</small>
           </button>
         ))}
       </div>

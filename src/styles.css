@@ -512,6 +512,12 @@ button {
   color: #0f172a;
 }
 
+.calendar-day.missed {
+  background: rgba(239, 68, 68, 0.16);
+  border: 1px solid rgba(239, 68, 68, 0.24);
+  color: #fee2e2;
+}
+
 .calendar-day.muted {
   opacity: 0.35;
 }
@@ -519,6 +525,60 @@ button {
 .record-help {
   margin: 8px 0 0;
   color: #cbd5e1;
+}
+
+.missed-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+  background: rgba(2, 6, 23, 0.74);
+  overscroll-behavior: contain;
+  touch-action: manipulation;
+}
+
+.missed-dialog {
+  width: min(560px, 100%);
+  max-height: min(80vh, 640px);
+  overflow-y: auto;
+  border-radius: 24px;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.98);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.42);
+  position: relative;
+  z-index: 1;
+  -webkit-overflow-scrolling: touch;
+}
+
+.missed-dialog h3 {
+  margin: 6px 0 8px;
+}
+
+.missed-dialog-grid {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.missed-dialog-button {
+  justify-content: center;
+  min-height: 48px;
+}
+
+.missed-debug-box {
+  display: grid;
+  gap: 4px;
+  margin-top: 14px;
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.24);
+  color: #dbeafe;
+  font-size: 0.88rem;
 }
 
 @media (min-width: 721px) {
@@ -557,5 +617,9 @@ button {
   .session-header {
     grid-template-columns: 1.4fr 1fr;
     align-items: start;
+  }
+
+  .missed-dialog-backdrop {
+    align-items: center;
   }
 }

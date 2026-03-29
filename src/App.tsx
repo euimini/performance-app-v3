@@ -38,7 +38,11 @@ const formatLocalDate = (date: Date) => {
   return `${year}-${month}-${day}`;
 };
 
-const buildCalendarDays = (baseDate: string, completedDates: Set<string>) => {
+const buildCalendarDays = (
+  baseDate: string,
+  completedDates: Set<string>,
+  missedDates: Set<string>
+) => {
   const firstDay = parseLocalDate(baseDate);
   firstDay.setDate(1);
   const month = firstDay.getMonth();
@@ -55,7 +59,8 @@ const buildCalendarDays = (baseDate: string, completedDates: Set<string>) => {
       date,
       dayNumber: day.getDate(),
       inMonth: day.getMonth() === month,
-      completed: completedDates.has(date)
+      completed: completedDates.has(date),
+      missed: missedDates.has(date)
     };
   });
 };
@@ -104,8 +109,15 @@ const App = () => {
     () => new Set(rawLogs.sessionLogs.filter((log) => log.completed).map((log) => log.date)),
     [rawLogs.sessionLogs]
   );
+  const missedDates = useMemo(
+    () => new Set(rawLogs.sessionLogs.filter((log) => !log.completed).map((log) => log.date)),
+    [rawLogs.sessionLogs]
+  );
 
-  const calendarDays = useMemo(() => buildCalendarDays(today, completedDates), [completedDates]);
+  const calendarDays = useMemo(
+    () => buildCalendarDays(today, completedDates, missedDates),
+    [completedDates, missedDates]
+  );
 
   const updateDraft = (version: SessionVersion) => {
     const selectedSession = plannerOutput.availablePlans[version];

@@ -53,4 +53,29 @@ describe("Today record flow", () => {
     expect(screen.getByText(/피로 - \/ 상체 - \/ 하체 -/)).toBeInTheDocument();
     expect(screen.getByText("아직 저장된 회복 기록이 없습니다.")).toBeInTheDocument();
   });
+
+  it("stores a missed reason and shows it as missed in records", async () => {
+    window.localStorage.clear();
+
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "오늘 세션" }));
+    fireEvent.click(screen.getByRole("button", { name: "오늘 미수행 기록" }));
+
+    await waitFor(() =>
+      expect(screen.getByRole("dialog", { name: "미수행 사유 팝업" })).toBeInTheDocument()
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "피로" }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText("오늘 미수행 사유를 피로(으)로 저장했습니다. 다음 처방 계산에 반영됩니다.")
+      ).toBeInTheDocument()
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "기록" }));
+
+    await waitFor(() => expect(screen.getByRole("button", { name: /29 미수행/ })).toBeInTheDocument());
+  });
 });
