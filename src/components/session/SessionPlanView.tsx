@@ -5,6 +5,7 @@ import type { SessionVersion, TodaySessionSelection } from "../../domain/session
 import { ExerciseTimerControl } from "../timers/ExerciseTimerControl";
 
 type SessionPlanViewProps = {
+  activeDate: string;
   selection: TodaySessionSelection;
   onVersionChange: (version: SessionVersion) => void;
   onReset: () => void;
@@ -27,6 +28,7 @@ const missedReasonOptions: Array<{ id: MissedSessionReason; label: string }> = [
 ];
 
 export const SessionPlanView = ({
+  activeDate,
   selection,
   onVersionChange,
   onReset,
@@ -138,6 +140,7 @@ export const SessionPlanView = ({
         <div className="session-header">
           <div>
             <div className="eyebrow">오늘 세션</div>
+            <p className="session-date-label">현재 진행 날짜 {activeDate}</p>
             <h2>{currentPlan.title}</h2>
             <p>{currentPlan.summary}</p>
             <p>{currentPlan.description}</p>

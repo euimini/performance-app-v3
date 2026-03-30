@@ -172,7 +172,7 @@ const App = () => {
   }) => {
     setRawLogs(
       upsertRecoveryLog({
-          date: today,
+        date: activeDate,
         fatigue: payload.fatigue,
         upperDoms: payload.upperDoms,
         lowerDoms: payload.lowerDoms,
@@ -229,8 +229,8 @@ const App = () => {
   };
 
   const resetTodayRecord = () => {
-    const withoutRecovery = removeRecoveryLogByDate(today);
-    const withoutSessionLogs = removeSessionLogsByDate(today);
+    const withoutRecovery = removeRecoveryLogByDate(activeDate);
+    const withoutSessionLogs = removeSessionLogsByDate(activeDate);
 
     setRawLogs({
       recoveryLogs: withoutRecovery.recoveryLogs,
@@ -293,7 +293,7 @@ const App = () => {
 
       {screen === "recovery" ? (
         <RecoveryNutritionScreen
-          date={today}
+          date={activeDate}
           recoveryState={currentRecovery}
           recommendedVersion={plannerOutput.todayPlan.version}
           onSave={handleRecoverySave}
@@ -302,6 +302,7 @@ const App = () => {
 
       {screen === "records" ? (
         <RecordsScreen
+          activeDate={activeDate}
           calendarDays={calendarDays}
           onToggleComplete={toggleCalendarComplete}
           onResetToday={resetTodayRecord}

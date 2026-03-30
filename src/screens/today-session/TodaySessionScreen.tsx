@@ -23,6 +23,7 @@ export const TodaySessionScreen = ({
   onMarkMissed
 }: TodaySessionScreenProps) => (
   <SessionPlanView
+    activeDate={plannerOutput.date}
     key={resetKey}
     selection={selectTodaySession(plannerOutput, draft)}
     onVersionChange={onVersionChange}

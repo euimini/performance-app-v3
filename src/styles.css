@@ -119,6 +119,13 @@ button {
   color: #cbd5e1;
 }
 
+.session-date-label {
+  margin: 4px 0 10px;
+  color: #fde68a;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
 .hero-chip,
 .warning-pill,
 .flow-badge,

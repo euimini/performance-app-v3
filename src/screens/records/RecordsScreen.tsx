@@ -9,12 +9,14 @@ type CalendarDay = {
 };
 
 type RecordsScreenProps = {
+  activeDate: string;
   calendarDays: CalendarDay[];
   onToggleComplete: (date: string) => void;
   onResetToday: () => void;
 };
 
 export const RecordsScreen = ({
+  activeDate,
   calendarDays,
   onToggleComplete,
   onResetToday
@@ -42,10 +44,12 @@ export const RecordsScreen = ({
           onClick={handleResetClick}
           type="button"
         >
-          {confirmReset ? "한 번 더 누르면 오늘 기록 초기화" : "오늘 기록 초기화"}
+          {confirmReset ? "한 번 더 누르면 현재 기준 기록 초기화" : "현재 기준 기록 초기화"}
         </button>
         {confirmReset ? (
-          <p className="record-help">오늘 회복 입력, 완료 체크, 진행 중 세션 선택을 함께 지웁니다.</p>
+          <p className="record-help">
+            {activeDate} 회복 입력, 완료 체크, 진행 중 세션 선택을 함께 지웁니다.
+          </p>
         ) : null}
       </div>
 

@@ -108,15 +108,15 @@ export const RecoveryNutritionScreen = ({
       sleepHours: Number(sleepHours),
       memo: memo.trim() || undefined
     });
-    setStatusMessage("오늘 회복 입력이 저장되었습니다.");
+    setStatusMessage(`${date} 회복 입력이 저장되었습니다.`);
   };
 
   return (
     <section className="panel-card">
       <div className="eyebrow">회복 입력</div>
-      <h2>오늘 몸 상태만 빠르게 적고 바로 저장합니다.</h2>
+      <h2>현재 기준일 몸 상태를 빠르게 적고 바로 저장합니다.</h2>
       <p className="recovery-summary">
-        현재 추천 버전: <strong>{versionLabel(recommendedVersion)}</strong>
+        입력 기준일: <strong>{date}</strong> · 현재 추천 버전: <strong>{versionLabel(recommendedVersion)}</strong>
       </p>
 
       <div className="quick-actions">
@@ -186,7 +186,7 @@ export const RecoveryNutritionScreen = ({
       </label>
 
       <button className="primary-button" onClick={handleSave} type="button">
-        오늘 회복 입력 저장
+        현재 기준 회복 입력 저장
       </button>
       {statusMessage ? <p className="recovery-status">{statusMessage}</p> : null}
     </section>
