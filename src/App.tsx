@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { MissedSessionReason } from "./domain/records/SessionLog";
 import type { RecoveryState } from "./domain/recovery/RecoveryState";
 import type { SessionDraft, SessionVersion } from "./domain/session/types";
@@ -17,26 +17,19 @@ import {
   loadSessionDraft,
   saveSessionDraft
 } from "./repositories/sessionDraftRepository";
+import {
+  addDays,
+  formatLocalDate,
+  getMillisecondsUntilNextLocalDate,
+  getTodayLocalDate,
+  parseLocalDate
+} from "./services/localDate";
 import { HomeScreen } from "./screens/home/HomeScreen";
 import { RecordsScreen } from "./screens/records/RecordsScreen";
 import { RecoveryNutritionScreen } from "./screens/recovery-nutrition/RecoveryNutritionScreen";
 import { TodaySessionScreen } from "./screens/today-session/TodaySessionScreen";
 
-const today = "2026-03-29";
-
 type ScreenKey = "home" | "today" | "recovery" | "records";
-
-const parseLocalDate = (date: string) => {
-  const [year, month, day] = date.split("-").map(Number);
-  return new Date(year, month - 1, day);
-};
-
-const formatLocalDate = (date: Date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
 
 const buildCalendarDays = (
   baseDate: string,
@@ -71,44 +64,81 @@ const getRecoveryForDate = (logs: RecoveryState[], date: string) =>
     .sort((a, b) => a.date.localeCompare(b.date))
     .at(-1);
 
+const getActiveDate = (today: string, completedDates: Set<string>) => {
+  let current = today;
+
+  for (let index = 0; index < 14; index += 1) {
+    if (!completedDates.has(current)) {
+      return current;
+    }
+
+    current = addDays(current, 1);
+  }
+
+  return current;
+};
+
 const App = () => {
   const [screen, setScreen] = useState<ScreenKey>("home");
+  const [today, setToday] = useState(() => getTodayLocalDate());
   const [rawLogs, setRawLogs] = useState(() => loadRawLogs());
   const [draft, setDraft] = useState<SessionDraft | undefined>(() => loadSessionDraft());
   const [todaySessionResetKey, setTodaySessionResetKey] = useState(0);
   const profile = useMemo(() => loadOnboardingProfile(), []);
-
-  const plannerOutput = useMemo(
-    () =>
-      createPlannerOutput({
-        date: today,
-        profile,
-        recoveryState: getRecoveryForDate(rawLogs.recoveryLogs, today),
-        sessionLogs: rawLogs.sessionLogs,
-        sessionDraft: draft
-      }),
-    [draft, profile, rawLogs]
-  );
-
-  const weeklyPlan = useMemo(
-    () =>
-      createWeeklyPlannerOutput(
-        {
-          date: today,
-          profile,
-          recoveryState: getRecoveryForDate(rawLogs.recoveryLogs, today),
-          sessionLogs: rawLogs.sessionLogs
-        },
-        today,
-        (date) => getRecoveryForDate(rawLogs.recoveryLogs, date)
-      ),
-    [profile, rawLogs]
-  );
-
   const completedDates = useMemo(
     () => new Set(rawLogs.sessionLogs.filter((log) => log.completed).map((log) => log.date)),
     [rawLogs.sessionLogs]
   );
+  const activeDate = useMemo(() => getActiveDate(today, completedDates), [completedDates, today]);
+  const activeDraft = draft?.date === activeDate ? draft : undefined;
+  const currentRecovery = useMemo(
+    () => getRecoveryForDate(rawLogs.recoveryLogs, activeDate),
+    [activeDate, rawLogs.recoveryLogs]
+  );
+
+  useEffect(() => {
+    const timerId = window.setTimeout(() => {
+      setToday(getTodayLocalDate());
+    }, getMillisecondsUntilNextLocalDate());
+
+    return () => window.clearTimeout(timerId);
+  }, [today]);
+
+  useEffect(() => {
+    if (!draft || draft.date === activeDate) {
+      return;
+    }
+
+    setDraft(undefined);
+    clearSessionDraft();
+    setTodaySessionResetKey((current) => current + 1);
+  }, [activeDate, draft]);
+
+  const plannerState = useMemo(() => {
+    const plannerInput = {
+      date: activeDate,
+      profile,
+      recoveryState: currentRecovery,
+      sessionLogs: rawLogs.sessionLogs,
+      sessionDraft: activeDraft
+    };
+
+    return {
+      plannerOutput: createPlannerOutput(plannerInput),
+      weeklyPlan: createWeeklyPlannerOutput(
+        {
+          date: activeDate,
+          profile,
+          recoveryState: currentRecovery,
+          sessionLogs: rawLogs.sessionLogs
+        },
+        activeDate,
+        (date) => getRecoveryForDate(rawLogs.recoveryLogs, date)
+      )
+    };
+  }, [activeDate, activeDraft, currentRecovery, profile, rawLogs.recoveryLogs, rawLogs.sessionLogs]);
+
+  const { plannerOutput, weeklyPlan } = plannerState;
   const missedDates = useMemo(
     () => new Set(rawLogs.sessionLogs.filter((log) => !log.completed).map((log) => log.date)),
     [rawLogs.sessionLogs]
@@ -116,13 +146,13 @@ const App = () => {
 
   const calendarDays = useMemo(
     () => buildCalendarDays(today, completedDates, missedDates),
-    [completedDates, missedDates]
+    [completedDates, missedDates, today]
   );
 
   const updateDraft = (version: SessionVersion) => {
     const selectedSession = plannerOutput.availablePlans[version];
     const nextDraft: SessionDraft = {
-      date: today,
+      date: activeDate,
       selectedSessionId: selectedSession.id,
       selectedVersion: version,
       startedAt: new Date().toISOString()
@@ -142,7 +172,7 @@ const App = () => {
   }) => {
     setRawLogs(
       upsertRecoveryLog({
-        date: today,
+          date: today,
         fatigue: payload.fatigue,
         upperDoms: payload.upperDoms,
         lowerDoms: payload.lowerDoms,
@@ -151,6 +181,8 @@ const App = () => {
         memo: payload.memo
       })
     );
+    setDraft(undefined);
+    clearSessionDraft();
   };
 
   const resetTodaySession = () => {
@@ -160,12 +192,12 @@ const App = () => {
   };
 
   const completeTodaySession = () => {
-    const selectedVersion = draft?.selectedVersion ?? plannerOutput.todayPlan.version;
+    const selectedVersion = activeDraft?.selectedVersion ?? plannerOutput.todayPlan.version;
     const selectedPlan = plannerOutput.availablePlans[selectedVersion];
 
     setRawLogs(
       upsertSessionLog({
-        date: today,
+        date: activeDate,
         sessionId: selectedPlan.id,
         baseSessionId: selectedPlan.baseSessionId,
         completed: true,
@@ -173,15 +205,17 @@ const App = () => {
         quality: selectedVersion === "normal" ? "clean" : "managed"
       })
     );
+    setDraft(undefined);
+    clearSessionDraft();
   };
 
   const markTodaySessionMissed = (missedReason: MissedSessionReason) => {
-    const selectedVersion = draft?.selectedVersion ?? plannerOutput.todayPlan.version;
+    const selectedVersion = activeDraft?.selectedVersion ?? plannerOutput.todayPlan.version;
     const selectedPlan = plannerOutput.availablePlans[selectedVersion];
 
     setRawLogs(
       upsertSessionLog({
-        date: today,
+        date: activeDate,
         sessionId: selectedPlan.id,
         baseSessionId: selectedPlan.baseSessionId,
         completed: false,
@@ -190,6 +224,8 @@ const App = () => {
         missedReason
       })
     );
+    setDraft(undefined);
+    clearSessionDraft();
   };
 
   const resetTodayRecord = () => {
@@ -239,7 +275,6 @@ const App = () => {
         <HomeScreen
           plannerOutput={plannerOutput}
           weeklyPlan={weeklyPlan}
-          draft={draft}
           onStart={() => setScreen("today")}
         />
       ) : null}
@@ -247,7 +282,7 @@ const App = () => {
       {screen === "today" ? (
         <TodaySessionScreen
           plannerOutput={plannerOutput}
-          draft={draft}
+          draft={activeDraft}
           onVersionChange={updateDraft}
           onComplete={completeTodaySession}
           onMarkMissed={markTodaySessionMissed}
@@ -259,8 +294,7 @@ const App = () => {
       {screen === "recovery" ? (
         <RecoveryNutritionScreen
           date={today}
-          recoveryState={getRecoveryForDate(rawLogs.recoveryLogs, today)}
-          recoveryHistory={[...rawLogs.recoveryLogs].reverse().slice(0, 5)}
+          recoveryState={currentRecovery}
           recommendedVersion={plannerOutput.todayPlan.version}
           onSave={handleRecoverySave}
         />

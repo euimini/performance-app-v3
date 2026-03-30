@@ -6,7 +6,7 @@ type HomeHeroCardProps = {
 };
 
 const priorityLabel = (priority: PlannerOutput["cardPriority"]) =>
-  priority === "firefighter" ? "소방 시험 우선" : priority === "pull-up" ? "풀업 성장 우선" : "회복 재정비";
+  priority === "firefighter" ? "소방 체력 우선" : priority === "pull-up" ? "턱걸이 성장 우선" : "회복 조정 반영";
 
 const versionLabel = (version: PlannerOutput["todayPlan"]["version"]) =>
   version === "normal" ? "기본 처방" : version === "reduced" ? "축소 처방" : "회복 처방";
@@ -14,7 +14,7 @@ const versionLabel = (version: PlannerOutput["todayPlan"]["version"]) =>
 export const HomeHeroCard = ({ plannerOutput, onStart }: HomeHeroCardProps) => (
   <section className="hero-card hero-card-strong">
     <div className="hero-topline">
-      <span className="eyebrow">오늘 처방</span>
+      <span className="eyebrow">오늘 세션</span>
       <div className="hero-chip-row">
         <span className="hero-chip">{plannerOutput.phase}</span>
         <span className="hero-chip subtle">{priorityLabel(plannerOutput.cardPriority)}</span>
@@ -31,15 +31,15 @@ export const HomeHeroCard = ({ plannerOutput, onStart }: HomeHeroCardProps) => (
         <strong>{versionLabel(plannerOutput.todayPlan.version)}</strong>
       </div>
       <div className="hero-meta-item">
-        <span className="hero-meta-label">예상 소요시간</span>
+        <span className="hero-meta-label">예상 시간</span>
         <strong>{plannerOutput.todayPlan.estimatedMinutes}분</strong>
       </div>
       <div className="hero-meta-item">
-        <span className="hero-meta-label">훈련 밀도</span>
+        <span className="hero-meta-label">운동 밀도</span>
         <strong>{plannerOutput.todayPlan.densityLabel}</strong>
       </div>
       <div className="hero-meta-item">
-        <span className="hero-meta-label">첫 핵심 동작</span>
+        <span className="hero-meta-label">첫 동작</span>
         <strong>{plannerOutput.todayPlan.exercises[0]?.name ?? "회복 걷기"}</strong>
       </div>
     </div>
@@ -59,7 +59,7 @@ export const HomeHeroCard = ({ plannerOutput, onStart }: HomeHeroCardProps) => (
     </div>
 
     <button className="primary-button primary-button-wide" onClick={onStart} type="button">
-      오늘 처방 열기
+      오늘 세션 열기
     </button>
   </section>
 );

@@ -4,6 +4,7 @@ import type { SessionVersion } from "../domain/session/types";
 import { readStorage, writeStorage } from "../store/localStore";
 
 const RAW_LOGS_KEY = "performance-app-v3/raw-logs";
+const LEGACY_SEED_DATES = new Set(["2026-03-26", "2026-03-27"]);
 
 export type RawLogsStore = {
   recoveryLogs: RecoveryState[];
@@ -99,10 +100,14 @@ const dedupeSessionLogsByDate = (logs: SessionLog[]) => {
 
 const sanitizeRawLogs = (store: Partial<RawLogsStore>): RawLogsStore => {
   const recoveryLogs = dedupeRecoveryLogsByDate(
-    (store.recoveryLogs ?? []).map((log) => normalizeRecoveryLog(log as LegacyRecoveryLog))
+    (store.recoveryLogs ?? [])
+      .map((log) => normalizeRecoveryLog(log as LegacyRecoveryLog))
+      .filter((log) => !LEGACY_SEED_DATES.has(log.date))
   );
   const sessionLogs = dedupeSessionLogsByDate(
-    (store.sessionLogs ?? []).map((log) => normalizeSessionLog(log as LegacySessionLog))
+    (store.sessionLogs ?? [])
+      .map((log) => normalizeSessionLog(log as LegacySessionLog))
+      .filter((log) => !LEGACY_SEED_DATES.has(log.date))
   );
 
   return { recoveryLogs, sessionLogs };

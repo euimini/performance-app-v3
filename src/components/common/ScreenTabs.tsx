@@ -6,14 +6,14 @@ type ScreenTabsProps = {
 };
 
 const tabs: Array<{ key: ScreenKey; label: string }> = [
-  { key: "home", label: "처방 홈" },
+  { key: "home", label: "홈" },
   { key: "today", label: "오늘 세션" },
   { key: "recovery", label: "회복 입력" },
   { key: "records", label: "기록" }
 ];
 
 export const ScreenTabs = ({ current, onChange }: ScreenTabsProps) => (
-  <nav className="tab-bar" aria-label="화면 이동">
+  <nav aria-label="화면 이동" className="tab-bar">
     {tabs.map((tab) => (
       <button
         key={tab.key}

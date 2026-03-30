@@ -1,25 +1,21 @@
 import { HomeHeroCard } from "../../components/cards/HomeHeroCard";
 import { WeeklyPlanCard } from "../../components/cards/WeeklyPlanCard";
-import type { PlannerOutput, SessionDraft, WeeklyPlannerOutput } from "../../domain/session/types";
+import type { PlannerOutput, WeeklyPlannerOutput } from "../../domain/session/types";
 
 type HomeScreenProps = {
   plannerOutput: PlannerOutput;
   weeklyPlan: WeeklyPlannerOutput;
-  draft?: SessionDraft;
   onStart: () => void;
 };
-
-const versionLabel = (version: PlannerOutput["fallbackPlan"]["version"]) =>
-  version === "normal" ? "기본 재진입" : version === "reduced" ? "축소 재진입" : "회복 전환";
 
 export const HomeScreen = ({ plannerOutput, weeklyPlan, onStart }: HomeScreenProps) => (
   <div className="screen-stack">
     <HomeHeroCard plannerOutput={plannerOutput} onStart={onStart} />
 
     <section className="panel-card">
-      <div className="eyebrow">이번 주 7일 루틴</div>
+      <div className="eyebrow">앞으로 6일 루틴</div>
       <h2>{weeklyPlan.weekLabel}</h2>
-      <p>오늘 처방과 같은 엔진에서 계산한 이번 주 흐름입니다.</p>
+      <p>현재 진행 기준일에 맞춰 앞으로 이어질 6일 처방만 바로 보여줍니다.</p>
       <div className="weekly-grid">
         {weeklyPlan.items.map((item) => (
           <WeeklyPlanCard item={item} key={item.date} />
@@ -28,8 +24,8 @@ export const HomeScreen = ({ plannerOutput, weeklyPlan, onStart }: HomeScreenPro
     </section>
 
     <section className="panel-card">
-      <div className="eyebrow">왜 이 처방인가</div>
-      <h2>오늘은 상태 해석보다 행동 가능한 세션이 먼저 나옵니다.</h2>
+      <div className="eyebrow">오늘 처방 판단</div>
+      <h2>상태 설명보다 지금 기준으로 해야 할 루틴이 먼저 보이도록 정리했습니다.</h2>
       <ul className="decision-list">
         {plannerOutput.selectedReason.map((reason) => (
           <li key={reason}>{reason}</li>
@@ -47,44 +43,9 @@ export const HomeScreen = ({ plannerOutput, weeklyPlan, onStart }: HomeScreenPro
       ) : null}
     </section>
 
-    <section className="panel-grid">
-      <article className="panel-card compact-card">
-        <div className="eyebrow">대체 처방</div>
-        <h3>{plannerOutput.fallbackPlan.title}</h3>
-        <p>{plannerOutput.fallbackPlan.summary}</p>
-        <div className="mini-label">{versionLabel(plannerOutput.fallbackPlan.version)}</div>
-        <div className="weekly-meta">
-          <span>{plannerOutput.fallbackPlan.estimatedMinutes}분</span>
-          <span>{plannerOutput.fallbackPlan.densityLabel}</span>
-        </div>
-        <ul className="mini-list">
-          {plannerOutput.fallbackPlan.exercises.slice(0, 4).map((exercise) => (
-            <li key={exercise.id}>
-              <strong>{exercise.name}</strong>
-              <span>{exercise.prescription}</span>
-            </li>
-          ))}
-        </ul>
-      </article>
-
-      <article className="panel-card compact-card">
-        <div className="eyebrow">다음 흐름</div>
-        <h3>주간 처방과 모순되지 않는 다음 세 단계입니다.</h3>
-        <ul className="flow-list">
-          {plannerOutput.nextFlow.map((item) => (
-            <li key={item.label}>
-              <strong>{item.label}</strong>
-              <span>{item.title}</span>
-              <small>{item.focus}</small>
-            </li>
-          ))}
-        </ul>
-      </article>
-    </section>
-
     {plannerOutput.todayPlan.pullUpMeta ? (
       <section className="panel-card">
-        <div className="eyebrow">풀업 성장 트랙</div>
+        <div className="eyebrow">턱걸이 성장 트랙</div>
         <h2>{plannerOutput.todayPlan.pullUpMeta.trackLabel}</h2>
         <div className="panel-grid">
           <article className="info-card">
@@ -103,8 +64,8 @@ export const HomeScreen = ({ plannerOutput, weeklyPlan, onStart }: HomeScreenPro
 
     {plannerOutput.todayPlan.firefighterStations ? (
       <section className="panel-card">
-        <div className="eyebrow">시험 종목 대응</div>
-        <h2>소방 서킷 Day는 실제 평가 종목에 맞는 대체 동작으로 보여줍니다.</h2>
+        <div className="eyebrow">소방 종목 대응</div>
+        <h2>현재 세션을 실제 종목 흐름에 맞는 대체 동작으로 연결해 둡니다.</h2>
         <div className="station-grid">
           {plannerOutput.todayPlan.firefighterStations.map((station) => (
             <article className="station-card" key={station.stationName}>

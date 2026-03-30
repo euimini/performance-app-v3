@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import type { MissedSessionReason } from "../../domain/records/SessionLog";
 import type { SessionVersion, TodaySessionSelection } from "../../domain/session/types";
-import { TimerChip } from "../timers/TimerChip";
+import { ExerciseTimerControl } from "../timers/ExerciseTimerControl";
 
 type SessionPlanViewProps = {
   selection: TodaySessionSelection;
@@ -10,12 +10,6 @@ type SessionPlanViewProps = {
   onReset: () => void;
   onComplete: () => void;
   onMarkMissed: (reason: MissedSessionReason) => void;
-};
-
-type ActiveTimer = {
-  exerciseId: string;
-  exerciseName: string;
-  remainingSeconds: number;
 };
 
 const versionOptions: Array<{ id: SessionVersion; label: string }> = [
@@ -39,14 +33,11 @@ export const SessionPlanView = ({
   onComplete,
   onMarkMissed
 }: SessionPlanViewProps) => {
-  const isDebugEnabled = import.meta.env.DEV;
-  const [activeTimer, setActiveTimer] = useState<ActiveTimer | null>(null);
   const [completedIds, setCompletedIds] = useState<string[]>([]);
   const [completionMessage, setCompletionMessage] = useState("");
   const [completionNotified, setCompletionNotified] = useState(false);
   const [missedMessage, setMissedMessage] = useState("");
   const [isMissedDialogOpen, setIsMissedDialogOpen] = useState(false);
-  const [missedDialogDebug, setMissedDialogDebug] = useState("idle");
   const currentPlan = selection.selectedPlan;
 
   const exercises = useMemo(
@@ -64,23 +55,10 @@ export const SessionPlanView = ({
   const nextExercise = exercises.find((exercise) => !completedIds.includes(exercise.id)) ?? exercises[0];
 
   useEffect(() => {
-    if (!activeTimer) {
-      return;
-    }
-
-    if (activeTimer.remainingSeconds <= 0) {
-      setActiveTimer(null);
-      return;
-    }
-
-    const timerId = window.setTimeout(() => {
-      setActiveTimer((current) =>
-        current ? { ...current, remainingSeconds: current.remainingSeconds - 1 } : null
-      );
-    }, 1000);
-
-    return () => window.clearTimeout(timerId);
-  }, [activeTimer]);
+    setCompletedIds([]);
+    setCompletionMessage("");
+    setCompletionNotified(false);
+  }, [currentPlan.id]);
 
   useEffect(() => {
     if (exercises.length === 0 || completedIds.length !== exercises.length || completionNotified) {
@@ -88,7 +66,7 @@ export const SessionPlanView = ({
     }
 
     onComplete();
-    setCompletionMessage("오늘 처방이 완료되어 기록에 자동 반영되었습니다.");
+    setCompletionMessage("오늘 세션 완료가 주간 루틴에 바로 반영되었습니다.");
     setCompletionNotified(true);
   }, [completedIds.length, completionNotified, exercises.length, onComplete]);
 
@@ -103,56 +81,29 @@ export const SessionPlanView = ({
     setCompletedIds((prev) => (prev.includes(exerciseId) ? prev : [...prev, exerciseId]));
   };
 
-  const startTimer = (exerciseId: string, exerciseName: string, seconds?: number) => {
-    if (!seconds) {
-      return;
-    }
-
-    setActiveTimer({
-      exerciseId,
-      exerciseName,
-      remainingSeconds: seconds
-    });
-  };
-
-  const openMissedDialog = () => {
-    setMissedDialogDebug("triggered");
-    setIsMissedDialogOpen(true);
-  };
-
-  const closeMissedDialog = () => {
-    setIsMissedDialogOpen(false);
-    setMissedDialogDebug("closed");
-  };
-
   const markMissed = (reason: MissedSessionReason) => {
-    setMissedDialogDebug(`reason:${reason}`);
     onMarkMissed(reason);
     const label = missedReasonOptions.find((option) => option.id === reason)?.label ?? reason;
-    setMissedMessage(`오늘 미수행 사유를 ${label}(으)로 저장했습니다. 다음 처방 계산에 반영됩니다.`);
+    setMissedMessage(`오늘 미수행 이유를 ${label}(으)로 저장했고, 다음 계산에 바로 반영했습니다.`);
     setIsMissedDialogOpen(false);
   };
 
   const missedDialog =
     isMissedDialogOpen && typeof document !== "undefined"
       ? createPortal(
-          <div
-            className="missed-dialog-backdrop"
-            onClick={closeMissedDialog}
-            role="presentation"
-          >
+          <div className="missed-dialog-backdrop" onClick={() => setIsMissedDialogOpen(false)} role="presentation">
             <section
-              aria-label="미수행 사유 팝업"
               aria-describedby="missed-dialog-description"
+              aria-label="미수행 사유 팝업"
               aria-modal="true"
               className="missed-dialog"
               onClick={(event) => event.stopPropagation()}
               role="dialog"
             >
               <div className="eyebrow">미수행 사유 선택</div>
-              <h3>오늘 세션을 못한 이유를 남겨주세요.</h3>
+              <h3>오늘 세션을 못 한 이유를 골라 주세요.</h3>
               <p id="missed-dialog-description">
-                이유에 따라 다음 처방이 `재배치`, `축소`, `회복`으로 다시 계산됩니다.
+                선택한 이유에 따라 다음 처방을 기본, 축소, 회복 중에서 다시 계산합니다.
               </p>
 
               <div className="missed-dialog-grid">
@@ -168,16 +119,11 @@ export const SessionPlanView = ({
                 ))}
               </div>
 
-              {isDebugEnabled ? (
-                <div className="missed-debug-box">
-                  <strong>debug</strong>
-                  <span>click detected: {missedDialogDebug}</span>
-                  <span>open state: {String(isMissedDialogOpen)}</span>
-                  <span>dialog rendered: true</span>
-                </div>
-              ) : null}
-
-              <button className="primary-button primary-button-wide" onClick={closeMissedDialog} type="button">
+              <button
+                className="primary-button primary-button-wide"
+                onClick={() => setIsMissedDialogOpen(false)}
+                type="button"
+              >
                 닫기
               </button>
             </section>
@@ -218,26 +164,21 @@ export const SessionPlanView = ({
             <button className="secondary-button reset-button" onClick={onReset} type="button">
               오늘 루틴 초기화
             </button>
-            <button className="danger-button reset-button" onClick={openMissedDialog} type="button">
+            <button className="danger-button reset-button" onClick={() => setIsMissedDialogOpen(true)} type="button">
               오늘 미수행 기록
             </button>
             <p className="mode-help">
-              폼이 무너지거나 통증이 올라오면 즉시 축소 또는 회복 버전으로 바꿉니다.
+              몸이 무겁거나 통증이 있으면 축소 또는 회복으로 바꾸고, 못 했으면 이유를 남깁니다.
             </p>
-            {isDebugEnabled ? (
-              <p className="mode-help">
-                missed-dialog debug: {missedDialogDebug} / open={String(isMissedDialogOpen)}
-              </p>
-            ) : null}
             {missedMessage ? <p className="recovery-status">{missedMessage}</p> : null}
           </div>
         </div>
 
         <div className="session-flow-card">
           <div>
-            <div className="eyebrow">지금 바로 할 동작</div>
+            <div className="eyebrow">지금 할 운동</div>
             <h3>{nextExercise?.name ?? "회복 걷기"}</h3>
-            <p className="flow-main-text">{nextExercise?.prescription ?? "12분, 심박수 105~124bpm"}</p>
+            <p className="flow-main-text">{nextExercise?.prescription ?? "12분 심박수 105~124bpm"}</p>
           </div>
           <div className="flow-badges">
             <span className="flow-badge">{selection.readiness.label}</span>
@@ -258,7 +199,7 @@ export const SessionPlanView = ({
 
         {currentPlan.firefighterStations ? (
           <section className="station-panel">
-            <div className="eyebrow">시험 종목 대응</div>
+            <div className="eyebrow">소방 종목 대응</div>
             <div className="station-grid">
               {currentPlan.firefighterStations.map((station) => (
                 <article className="station-card" key={station.stationName}>
@@ -274,7 +215,7 @@ export const SessionPlanView = ({
 
         {currentPlan.pullUpMeta ? (
           <section className="pull-track-panel">
-            <div className="eyebrow">풀업 성장 로직</div>
+            <div className="eyebrow">턱걸이 성장 로직</div>
             <div className="panel-grid">
               <article className="info-card">
                 <span className="hero-meta-label">현재 트랙</span>
@@ -293,7 +234,6 @@ export const SessionPlanView = ({
         <div className="steps">
           {exercises.map((exercise) => {
             const done = completedIds.includes(exercise.id);
-            const isRunning = activeTimer?.exerciseId === exercise.id;
 
             return (
               <article className={done ? "step-card step-card-done" : "step-card"} key={exercise.id}>
@@ -303,7 +243,6 @@ export const SessionPlanView = ({
                     <h4>{exercise.name}</h4>
                     <p className="step-block-name">{exercise.blockTitle}</p>
                   </div>
-                  <TimerChip seconds={exercise.timerSeconds ?? 30} />
                 </div>
 
                 <p className="prescription">{exercise.prescription}</p>
@@ -318,15 +257,13 @@ export const SessionPlanView = ({
                 <p className="cue">{exercise.coachingCue}</p>
 
                 <div className="step-actions">
+                  <ExerciseTimerControl
+                    exercise={exercise}
+                    isDone={done}
+                    onFinishExercise={() => completeExercise(exercise.id)}
+                  />
                   <button
-                    className="secondary-button"
-                    onClick={() => startTimer(exercise.id, exercise.name, exercise.timerSeconds)}
-                    type="button"
-                  >
-                    {isRunning ? "타이머 다시 시작" : "타이머 시작"}
-                  </button>
-                  <button
-                    className={done ? "secondary-button" : "primary-button"}
+                    className={done ? "secondary-button complete-button" : "primary-button complete-button"}
                     onClick={() => completeExercise(exercise.id)}
                     type="button"
                   >
@@ -339,16 +276,11 @@ export const SessionPlanView = ({
         </div>
 
         <div className="session-note">
-          <strong>축소 전환 기준</strong>
-          <span>{currentPlan.recoveryTriggers.join(" · ") || "폼 붕괴나 통증이 있으면 즉시 축소합니다."}</span>
+          <strong>강도 낮추는 기준</strong>
+          <span>
+            {currentPlan.recoveryTriggers.join(" · ") || "몸이 무겁거나 통증이 있으면 즉시 축소 또는 회복으로 바꿉니다."}
+          </span>
         </div>
-
-        {activeTimer ? (
-          <div className="timer-panel">
-            <strong>{activeTimer.exerciseName} 타이머</strong>
-            <span>{activeTimer.remainingSeconds}초 남음</span>
-          </div>
-        ) : null}
 
         {completionMessage ? <p className="session-status">{completionMessage}</p> : null}
       </section>

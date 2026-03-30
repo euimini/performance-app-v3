@@ -4,7 +4,7 @@ import { defaultOnboardingProfile } from "../repositories/onboardingProfileRepos
 import { HomeScreen } from "../screens/home/HomeScreen";
 
 const recoveryState = {
-  date: "2026-03-29",
+  date: "2026-03-30",
   fatigue: 4,
   upperDoms: 3,
   lowerDoms: 3,
@@ -13,9 +13,9 @@ const recoveryState = {
 };
 
 describe("HomeScreen", () => {
-  it("shows the weekly routine section under today's prescription", () => {
+  it("오늘 처방 아래에 앞으로 6일 루틴을 보여준다", () => {
     const plannerOutput = createPlannerOutput({
-      date: "2026-03-29",
+      date: "2026-03-30",
       profile: defaultOnboardingProfile,
       recoveryState,
       sessionLogs: []
@@ -23,23 +23,23 @@ describe("HomeScreen", () => {
 
     const weeklyPlan = createWeeklyPlannerOutput(
       {
-        date: "2026-03-29",
+        date: "2026-03-30",
         profile: defaultOnboardingProfile,
         recoveryState,
         sessionLogs: []
       },
-      "2026-03-29",
+      "2026-03-30",
       () => recoveryState
     );
 
     render(<HomeScreen plannerOutput={plannerOutput} weeklyPlan={weeklyPlan} onStart={() => undefined} />);
 
-    expect(screen.getByText("오늘 처방")).toBeInTheDocument();
-    expect(screen.getByText("이번 주 7일 루틴")).toBeInTheDocument();
-    expect(screen.getAllByText(/분/).length).toBeGreaterThan(1);
+    expect(screen.getByText("앞으로 6일 루틴")).toBeInTheDocument();
+    expect(screen.getByText("2026-03-30 ~ 2026-04-04")).toBeInTheDocument();
+    expect(screen.getAllByLabelText(/주간 루틴 2026-/).length).toBe(6);
   });
 
-  it("renders firefighter mapping and weekly cards together", () => {
+  it("소방 종목 대응과 롤링 루틴 카드가 함께 렌더링된다", () => {
     const plannerOutput = createPlannerOutput({
       date: "2026-03-29",
       profile: defaultOnboardingProfile,
@@ -60,8 +60,7 @@ describe("HomeScreen", () => {
 
     render(<HomeScreen plannerOutput={plannerOutput} weeklyPlan={weeklyPlan} onStart={() => undefined} />);
 
-    expect(screen.getByText("시험 종목 대응")).toBeInTheDocument();
-    expect(screen.getByText("계단 오르내리기")).toBeInTheDocument();
+    expect(screen.getByText("소방 종목 대응")).toBeInTheDocument();
     expect(screen.getAllByRole("heading", { level: 3 }).length).toBeGreaterThan(2);
   });
 });

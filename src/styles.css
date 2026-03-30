@@ -43,7 +43,6 @@ button {
 
 .panel-grid,
 .recovery-form-grid,
-.recovery-history-grid,
 .station-grid,
 .weekly-grid {
   display: grid;
@@ -150,7 +149,6 @@ button {
 .hero-exercise-box,
 .step-card,
 .station-card,
-.compact-card,
 .weekly-card {
   border-radius: 18px;
   border: 1px solid rgba(148, 163, 184, 0.14);
@@ -169,7 +167,6 @@ button {
 .hero-exercise-box,
 .step-card,
 .station-card,
-.compact-card,
 .weekly-card {
   padding: 14px;
 }
@@ -184,9 +181,7 @@ button {
 
 .hero-list,
 .steps,
-.mini-list,
 .decision-list,
-.flow-list,
 .weekly-key-list {
   list-style: none;
   padding: 0;
@@ -198,17 +193,13 @@ button {
 }
 
 .hero-list,
-.mini-list,
 .decision-list,
-.flow-list,
 .weekly-key-list {
   display: grid;
   gap: 10px;
 }
 
 .hero-list li,
-.mini-list li,
-.flow-list li,
 .weekly-key-list li {
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.04);
@@ -216,16 +207,13 @@ button {
 }
 
 .hero-list li strong,
-.mini-list li strong,
-.flow-list li strong {
+.weekly-key-list li strong {
   display: block;
   margin-bottom: 2px;
 }
 
 .hero-list li span,
-.mini-list li span,
-.flow-list li span,
-.flow-list li small {
+.weekly-key-list li span {
   display: block;
   color: #cbd5e1;
 }
@@ -352,14 +340,95 @@ button {
   margin: 10px 0;
 }
 
+.step-actions {
+  align-items: stretch;
+}
+
+.timer-slot {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.timer-launch-button,
+.complete-button {
+  width: 100%;
+  min-height: 48px;
+}
+
+.timer-progress-hint {
+  display: block;
+  margin-top: 6px;
+  color: #94a3b8;
+  font-size: 0.82rem;
+}
+
+.timer-inline-card {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(249, 115, 22, 0.12);
+  border: 1px solid rgba(249, 115, 22, 0.24);
+}
+
+.timer-slot-finished .timer-inline-card {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.28);
+}
+
+.timer-inline-top,
+.timer-inline-meta,
+.timer-inline-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.timer-inline-time {
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  font-weight: 800;
+  color: #f8fafc;
+  letter-spacing: 0.04em;
+}
+
+.timer-round-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fde68a;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.timer-inline-meta {
+  justify-content: flex-start;
+  color: #cbd5e1;
+  font-size: 0.88rem;
+}
+
+.timer-inline-note {
+  margin: 0;
+  color: #fed7aa;
+  font-size: 0.84rem;
+}
+
+.timer-inline-controls button {
+  flex: 1 1 110px;
+  min-height: 44px;
+}
+
 .cue {
   color: #94a3b8;
   min-height: 40px;
 }
 
 .session-note,
-.timer-panel,
-.nutrition-card {
+.timer-panel {
   display: flex;
   justify-content: space-between;
   gap: 10px;
@@ -429,7 +498,6 @@ button {
   margin-top: 14px;
 }
 
-.compact-card h3,
 .info-card p,
 .station-card span {
   margin-top: 6px;
@@ -604,7 +672,6 @@ button {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .recovery-history-grid,
   .station-grid,
   .weekly-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

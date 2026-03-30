@@ -5,13 +5,14 @@ type WeeklyPlanCardProps = {
 };
 
 const statusLabel = (status: WeeklyPlanItem["status"]) =>
-  status === "completed" ? "완료" : status === "missed" ? "미완료" : status === "today" ? "오늘" : "예정";
+  status === "completed" ? "완료" : status === "missed" ? "미수행" : status === "today" ? "현재" : "예정";
 
 const typeLabel = (type: WeeklyPlanItem["sessionType"]) =>
-  type === "normal" ? "normal" : type === "reduced" ? "reduced" : type === "recovery" ? "recovery" : "rest";
+  type === "normal" ? "기본" : type === "reduced" ? "축소" : type === "recovery" ? "회복" : "휴식";
 
 export const WeeklyPlanCard = ({ item }: WeeklyPlanCardProps) => (
   <article
+    aria-label={`주간 루틴 ${item.date}`}
     className={
       item.isToday
         ? "weekly-card weekly-card-today"
@@ -53,6 +54,12 @@ export const WeeklyPlanCard = ({ item }: WeeklyPlanCardProps) => (
         <li key={exercise}>{exercise}</li>
       ))}
     </ul>
+
+    {item.rescheduledFrom ? (
+      <div className="weekly-warning-row">
+        <span className="warning-pill">미수행 재배치 {item.rescheduledFrom}</span>
+      </div>
+    ) : null}
 
     {item.warnings.length > 0 ? (
       <div className="weekly-warning-row">

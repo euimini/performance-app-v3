@@ -34,7 +34,7 @@ export const RecordsScreen = ({
   return (
     <section className="panel-card">
       <div className="eyebrow">기록</div>
-      <h2>처방 완료 여부만 간단히 확인합니다.</h2>
+      <h2>완료 여부만 간단히 확인하고 필요하면 바로 수정합니다.</h2>
 
       <div className="record-actions">
         <button
@@ -45,23 +45,24 @@ export const RecordsScreen = ({
           {confirmReset ? "한 번 더 누르면 오늘 기록 초기화" : "오늘 기록 초기화"}
         </button>
         {confirmReset ? (
-          <p className="record-help">오늘 회복 입력, 완료 체크, 진행 중 세션 상태를 함께 지웁니다.</p>
+          <p className="record-help">오늘 회복 입력, 완료 체크, 진행 중 세션 선택을 함께 지웁니다.</p>
         ) : null}
       </div>
 
       <div className="calendar-grid">
         {calendarDays.map((day) => (
           <button
-            key={day.date}
+            aria-label={`${day.dayNumber} ${day.completed ? "완료" : day.missed ? "미수행" : "미완료"}`}
             className={
               day.completed
                 ? "calendar-day done"
                 : day.missed
                   ? "calendar-day missed"
-                : day.inMonth
-                  ? "calendar-day"
-                  : "calendar-day muted"
+                  : day.inMonth
+                    ? "calendar-day"
+                    : "calendar-day muted"
             }
+            key={day.date}
             onClick={() => day.inMonth && onToggleComplete(day.date)}
             type="button"
           >

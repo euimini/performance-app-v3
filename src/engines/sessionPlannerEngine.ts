@@ -10,6 +10,12 @@ import type {
   WeeklyPlannerOutput
 } from "../domain/session/types";
 import { buildSessionCard, cycleOrder, getSessionRecoveryProfile } from "../sessionPlanner/sessionTemplates";
+import {
+  addDays,
+  differenceInDays,
+  formatLocalDate,
+  parseLocalDate
+} from "../services/localDate";
 
 const cycleAnchorDate = "2026-03-29";
 
@@ -45,40 +51,9 @@ const missedReasonWeight: Record<MissedSessionReason, number> = {
   illness: 4
 };
 
-const parseLocalDate = (date: string) => {
-  const [year, month, day] = date.split("-").map(Number);
-  return new Date(year, month - 1, day);
-};
-
-const formatLocalDate = (date: Date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
-
-const addDays = (date: string, amount: number) => {
-  const next = parseLocalDate(date);
-  next.setDate(next.getDate() + amount);
-  return formatLocalDate(next);
-};
-
-const differenceInDays = (start: string, end: string) => {
-  const oneDay = 24 * 60 * 60 * 1000;
-  return Math.floor((parseLocalDate(end).getTime() - parseLocalDate(start).getTime()) / oneDay);
-};
-
 const getCycleIndex = (date: string) => {
   const offset = differenceInDays(cycleAnchorDate, date);
   return ((offset % cycleOrder.length) + cycleOrder.length) % cycleOrder.length;
-};
-
-const startOfWeek = (date: string) => {
-  const target = parseLocalDate(date);
-  const day = target.getDay();
-  const offset = day === 0 ? -6 : 1 - day;
-  target.setDate(target.getDate() + offset);
-  return formatLocalDate(target);
 };
 
 const weekdayLabel = (date: string) => ["일", "월", "화", "수", "목", "금", "토"][parseLocalDate(date).getDay()];
@@ -525,18 +500,18 @@ export const createPlannerOutput = (input: PlannerInput): PlannerOutput => creat
 
 export const createWeeklyPlannerOutput = (
   input: PlannerInput,
-  todayDate: string,
+  activeDate: string,
   recoveryResolver: (date: string) => RecoveryState | undefined
 ): WeeklyPlannerOutput => {
-  const weekStart = startOfWeek(todayDate);
-  const weekEnd = addDays(weekStart, 6);
-  const forwardAssignments = buildForwardRescheduleMap(input, todayDate, weekEnd);
+  const windowStart = activeDate;
+  const windowEnd = addDays(windowStart, 5);
+  const forwardAssignments = buildForwardRescheduleMap(input, activeDate, windowEnd);
 
-  const items: WeeklyPlanItem[] = Array.from({ length: 7 }, (_, index) => {
-    const date = addDays(weekStart, index);
-    const daysAhead = Math.max(0, differenceInDays(todayDate, date));
-    const recoveryState = projectRecovery(recoveryResolver(date) ?? recoveryResolver(todayDate), daysAhead);
-    const decision = date >= todayDate ? forwardAssignments.get(date) : undefined;
+  const items: WeeklyPlanItem[] = Array.from({ length: 6 }, (_, index) => {
+    const date = addDays(windowStart, index);
+    const daysAhead = Math.max(0, differenceInDays(activeDate, date));
+    const recoveryState = projectRecovery(recoveryResolver(date) ?? recoveryResolver(activeDate), daysAhead);
+    const decision = date >= activeDate ? forwardAssignments.get(date) : undefined;
     const output = createDailyPlan(
       {
         ...input,
@@ -548,11 +523,11 @@ export const createWeeklyPlannerOutput = (
     );
     const sessionLog = input.sessionLogs.find((log) => log.date === date);
     const status =
-      date === todayDate
+      date === activeDate
         ? sessionLog?.completed
           ? "completed"
           : "today"
-        : date < todayDate
+        : date < activeDate
           ? sessionLog?.completed
             ? "completed"
             : "missed"
@@ -570,16 +545,16 @@ export const createWeeklyPlannerOutput = (
       keyExercises: output.todayPlan.exercises.slice(0, 5).map((exercise) => exercise.name),
       warnings: output.warnings.slice(0, 2),
       status,
-      isToday: date === todayDate,
+      isToday: date === activeDate,
       rescheduledFrom: decision?.rescheduledFrom,
       missedReason: decision?.missedReason
     };
   });
 
   return {
-    weekLabel: `${weekStart} ~ ${weekEnd}`,
-    startDate: weekStart,
-    endDate: weekEnd,
+    weekLabel: `${windowStart} ~ ${windowEnd}`,
+    startDate: windowStart,
+    endDate: windowEnd,
     items
   };
 };
